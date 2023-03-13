@@ -1,70 +1,100 @@
-# Getting Started with Create React App
+# React
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### 2013 年起源于 Facebook，最多可以认为 MVC 的 V 层，React 的特性：
 
-## Available Scripts
+### 1.声明式设计：只关注于数据层的改变
 
-In the project directory, you can run:
+### 2.高效：虚拟 dom 减少与真实 dom 的交互，虚拟 dom 树标志前后的对比，通过打补丁的方式，更新视图
 
-### `yarn start`
+### 3.灵活：与 ui 框架结合
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 4.JSX：组合 html、css、js，JSX 可以解析
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 5.组件：复用
 
-### `yarn test`
+### 6.单向响应的数据流：父传子，子通过请求父再改变数据，控制权在父
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 安装脚手架，创建项目
 
-### `yarn build`
+### 1.方式一：需全局安装 create-react-app
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm i -g create-react-app
+create-react-app myapp
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2.方式二：临时安装
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npx create-react-app myapp
+```
 
-### `yarn eject`
+## React.createElement
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 1. React 的原始写法，通过 babel 把 jsx 转为 js 对象的形式
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```js
+ReactDOM.render(
+  <div id="aaa" style={{ color: 'red' }}>
+    <p id="bbb">111</p>
+    <p id="ccc">222</p>
+  </div>,
+  document.getElementById('root')
+);
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```js
+ReactDOM.render(
+  React.createElement(
+    'div',
+    {
+      id: 'aaa',
+      style: {
+        color: 'red',
+      },
+    },
+    [
+      React.createElement('p', { id: 'bbb' }, 111),
+      React.createElement('p', { id: 'ccc' }, 222),
+    ]
+  ),
+  document.getElementById('root')
+);
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 组件
 
-## Learn More
+### 1. 类组件
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 2. 函数组件：在 16.8 之前是无状态组件，在 16.8 之后有了 react hooks，也可以使函数组件变成有状态组件
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 样式
 
-### Code Splitting
+### 3. JSX 内使用一个{}表示变量或表达式的执行，import 引入 style 样式的方式，是 webpack 配置好的，webpack 会把 import 进来的 style 样式当成内部样式
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+![](./images/bc5fa0672ada0a881f2265390ee6742.png)
 
-### Analyzing the Bundle Size
+![](./images/1675761164411.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## ref：可以获取 dom 节点或者组件实例
 
-### Making a Progressive Web App
+#### 1.旧写法：给标签设置 ref="myinput",通过这个获取 this.refs.myinput 获取 dom 节点
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```js
+<input ref="myinput" />;
+访问this.refs.myinput;
+```
 
-### Advanced Configuration
+### 2.新写法：
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```js
+myref = React.createRef();
+<input ref={this.myref} />;
+访问this.myref.current;
+```
 
-### Deployment
+## 面试题
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+<font color="red" size="4">\* 1、react 的绑定事件机制跟普通事件是一样的吗？</font>
 
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 不一样，普通事件是直接绑定在当前元素身上，react 的事件是全部绑定在根节点身上，采取事件代理的方式冒泡到当前元素。但是 react 的事件跟普通事件一样都有 event 对象，用法一致。
