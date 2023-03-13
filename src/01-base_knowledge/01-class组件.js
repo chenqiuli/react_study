@@ -1,13 +1,11 @@
-import React from 'react';
+import React from "react";
 
-class App extends React.Component {
+class MyApp extends React.Component {
   render () {
     return (
-      <div>
-        hello react component
-      </div>
+      <div>111</div>
     );
   }
 }
 
-export default App;
+export default MyApp;

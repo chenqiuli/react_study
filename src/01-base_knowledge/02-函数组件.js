@@ -1,8 +1,13 @@
-function App () {
+function MyApp () {
   return (
-    <div>hello functional component</div>
+    <div>11---1</div>
   );
 }
 
-export default App;
+const MyApp2 = () => {
+  return (
+    <div>MyApp</div>
+  );
+};
 
+export default MyApp2;

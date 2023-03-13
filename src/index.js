@@ -2,7 +2,7 @@
    在React16之后不用引入是在执行的时候会自动引入React */
 import React from 'react';
 import ReactDOM from "react-dom";
-import App from "./01-base/08-ref";
+import App from "./01-base_knowledge/000-l";
 
 ReactDOM.render(<App />, document.getElementById("root"));
 

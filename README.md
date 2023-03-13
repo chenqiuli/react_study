@@ -1,20 +1,18 @@
-# React
+## 一、React 介绍
 
-### 2013 年起源于 Facebook，最多可以认为 MVC 的 V 层，React 的特性：
+### 1. React 起源与发展
 
-### 1.声明式设计：只关注于数据层的改变
+### 2013 年 5 月起源于 Facebook 的内部项目
 
-### 2.高效：虚拟 dom 减少与真实 dom 的交互，虚拟 dom 树标志前后的对比，通过打补丁的方式，更新视图
+### 2. React 的特性
 
-### 3.灵活：与 ui 框架结合
+![](./images/2.png)
 
-### 4.JSX：组合 html、css、js，JSX 可以解析
+### 3. 虚拟 DOM
 
-### 5.组件：复用
+![](./images/3.png)
 
-### 6.单向响应的数据流：父传子，子通过请求父再改变数据，控制权在父
-
-## 安装脚手架，创建项目
+## 二、create-react-app
 
 ### 1.方式一：需全局安装 create-react-app
 
@@ -29,9 +27,11 @@ create-react-app myapp
 npx create-react-app myapp
 ```
 
-## React.createElement
+## 三、react 基础
 
-### 1. React 的原始写法，通过 babel 把 jsx 转为 js 对象的形式
+### 1. React.createElement
+
+### React 的原始写法，使用 通过 babel 把 jsx 转为 js 对象的形式
 
 ```js
 ReactDOM.render(
@@ -62,36 +62,129 @@ ReactDOM.render(
 );
 ```
 
-## 组件
+### 2. class 组件
 
-### 1. 类组件
+```js
+import React from 'react';
+class MyApp extends React.Component {
+  render() {
+    return <div>111</div>;
+  }
+}
+export default MyApp;
+```
 
-### 2. 函数组件：在 16.8 之前是无状态组件，在 16.8 之后有了 react hooks，也可以使函数组件变成有状态组件
+### 3. 函数组件
 
-## 样式
+### 在 16.8 之前是无状态组件，在 16.8 之后有了 react hooks，也可以使函数组件变成有状态组件
 
-### 3. JSX 内使用一个{}表示变量或表达式的执行，import 引入 style 样式的方式，是 webpack 配置好的，webpack 会把 import 进来的 style 样式当成内部样式
+```js
+function MyApp() {
+  return <div>11---1</div>;
+}
 
-![](./images/bc5fa0672ada0a881f2265390ee6742.png)
+const MyApp2 = () => <div>MyApp</div>;
 
-![](./images/1675761164411.png)
+export default MyApp2;
+```
 
-## ref：可以获取 dom 节点或者组件实例
+### 4. 组件样式
 
-#### 1.旧写法：给标签设置 ref="myinput",通过这个获取 this.refs.myinput 获取 dom 节点
+### JSX 内使用一个{ }表示变量或表达式的执行
+
+```js
+import React, { Component } from 'react';
+import './css/01-index.css';
+
+class MyApp extends Component {
+  render() {
+    const style = {
+      background: 'red',
+      width: 200,
+      textAlign: 'center',
+      color: '#fff',
+    };
+
+    return (
+      <div>
+        <p
+          style={{
+            background: 'green',
+            width: 200,
+            textAlign: 'center',
+            color: 'white',
+          }}
+        >
+          第一种展示样式方法
+        </p>
+        <p style={style}>第二种展示样式方法</p>
+        <p className="highlight">
+          第三种展示样式方法，通过引入外部样式，webpack把样式当做head标签内的内部样式执行了
+        </p>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+![](./images/1.PNG)
+
+### 5. ref
+
+### ref 可以获取 dom 节点或者组件实例
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  myref = React.createRef();
+
+  handleClick = () => {
+    console.log(this.refs.myref.value);
+  };
+
+  render() {
+    return (
+      <div>
+        {/* deprecated */}
+        <input ref="myref" id="input1" />
+        <button onClick={this.handleClick}>点击</button>
+        <br />
+        {/* new */}
+        <input ref={this.myref} id="input2" />
+        <button
+          onClick={() => {
+            console.log(this.myref.current.value);
+          }}
+        >
+          点击
+        </button>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+#### 旧写法：给标签设置 ref="myinput",通过这个获取 this.refs.myinput 获取 dom 节点
 
 ```js
 <input ref="myinput" />;
 访问this.refs.myinput;
 ```
 
-### 2.新写法：
+### 新写法：
 
 ```js
 myref = React.createRef();
 <input ref={this.myref} />;
 访问this.myref.current;
 ```
+
+### 6. 事件绑定
 
 ## 面试题
 

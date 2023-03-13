@@ -1,20 +1,27 @@
 import React, { Component } from 'react';
 
-class App extends Component {
+class MyApp extends Component {
   myref = React.createRef();
+
+  handleClick = () => {
+    console.log(this.refs.myref.value);
+  };
 
   render () {
     return (
       <div>
-        <input ref={this.myref} />
-        <button onClick={() => this.handleClick()}>add</button>
+        {/* deprecated */}
+        <input ref="myref" id="input1" />
+        <button onClick={this.handleClick}>点击</button>
+        <br />
+        {/* new */}
+        <input ref={this.myref} id="input2" />
+        <button onClick={() => {
+          console.log(this.myref.current.value);
+        }}>点击</button>
       </div>
     );
   }
-
-  handleClick () {
-    console.log('add', this.myref.current);
-  }
 }
 
-export default App;
+export default MyApp;
