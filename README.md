@@ -169,22 +169,180 @@ class MyApp extends Component {
 export default MyApp;
 ```
 
-#### 旧写法：给标签设置 ref="myinput",通过这个获取 this.refs.myinput 获取 dom 节点
-
-```js
-<input ref="myinput" />;
-访问this.refs.myinput;
-```
-
-### 新写法：
-
-```js
-myref = React.createRef();
-<input ref={this.myref} />;
-访问this.myref.current;
-```
-
 ### 6. 事件绑定
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  state = {
+    text: '文本',
+  };
+
+  handleClick1 = () => {
+    console.log(this.state.text + '1');
+  };
+
+  handleClick3() {
+    console.log(this.state.text + '3');
+  }
+
+  handleClick4() {
+    console.log(this.state.text + '4');
+  }
+
+  render() {
+    return (
+      <div>
+        <button onClick={this.handleClick1}>点击1</button>
+        <button
+          onClick={() => {
+            console.log(this.state.text + '2');
+          }}
+        >
+          点击2
+        </button>
+        <button onClick={this.handleClick3.bind(this)}>点击3</button>
+        <button onClick={() => this.handleClick4()}>点击4</button>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### 7. state
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  state = {
+    isShow: true,
+  };
+
+  render() {
+    const { isShow } = this.state;
+    return (
+      <div>
+        <h1>欢迎来到react的世界</h1>
+        <button
+          onClick={() => {
+            this.setState({
+              isShow: !isShow,
+            });
+          }}
+        >
+          {isShow ? '收藏' : '取消收藏'}
+        </button>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### 8. 列表渲染
+
+### 为了列表的复用和重排，设置 key 值，提高性能；理想的 key 是 item.id，如果不涉及列表的增加删除重排，可以设置成索引
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  constructor() {
+    super();
+    this.state = {
+      arr: [
+        {
+          id: 1,
+          text: '111',
+        },
+        {
+          id: 2,
+          text: '222',
+        },
+        {
+          id: 3,
+          text: '333',
+        },
+      ],
+    };
+  }
+
+  render() {
+    const { arr } = this.state;
+    return (
+      <div>
+        <ul>
+          {arr.map((item) => {
+            return <li key={item.id}>{item.text}</li>;
+          })}
+        </ul>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### 9. dangerouslySetInnerHTML
+
+### dangerouslySetInnerHTML 可以把一段代码片段变成 html，然后插入到某个地方，可能会造成 xss 攻击
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  constructor() {
+    super();
+    this.state = {
+      myHtml: `<b style="color: red;">111</b>`,
+      inputHtml: '',
+    };
+  }
+
+  myRef = React.createRef();
+
+  handleOk = () => {
+    const inputValue = this.myRef.current.value;
+    this.setState({
+      inputHtml: inputValue,
+    });
+  };
+
+  render() {
+    const { myHtml, inputHtml } = this.state;
+    return (
+      <div>
+        <div
+          dangerouslySetInnerHTML={{
+            __html: myHtml,
+          }}
+        ></div>
+
+        <div>
+          <input ref={this.myRef} />
+          <button onClick={this.handleOk}>确定</button>
+        </div>
+
+        <div
+          dangerouslySetInnerHTML={{
+            __html: inputHtml,
+          }}
+        ></div>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+![](./images/4.gif)
 
 ## 面试题
 
