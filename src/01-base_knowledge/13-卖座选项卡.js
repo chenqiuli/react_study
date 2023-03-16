@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import "./css/02-卖座.css";
+import Film from "./components/Film/Film";
+import Cinema from './components/Cinema/Cinema';
+import Mine from "./components/Mine/Mine";
 
 class MyApp extends Component {
   constructor() {
@@ -7,10 +10,10 @@ class MyApp extends Component {
     this.state = {
       list: [{
         id: 1,
-        text: "电影/影院"
+        text: "电影"
       }, {
         id: 2,
-        text: "演出"
+        text: "影院"
       }, {
         id: 3,
         text: "我的"
@@ -28,19 +31,24 @@ class MyApp extends Component {
   render () {
     const { list, idx } = this.state;
     return (
-      <ul>
-        {list.map((item, index) => {
-          return (
-            <li
-              key={item.id}
-              className={idx === index ? 'active' : ''}
-              onClick={() => this.handleClick(index)}
-            >
-              {item.text}
-            </li>
-          );
-        })}
-      </ul>
+      <div>
+        {idx === 0 && <Film />}
+        {idx === 1 && <Cinema />}
+        {idx === 2 && <Mine />}
+        <ul >
+          {list.map((item, index) => {
+            return (
+              <li
+                key={item.id}
+                className={idx === index ? 'active' : ''}
+                onClick={() => this.handleClick(index)}
+              >
+                {item.text}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     );
   }
 }
