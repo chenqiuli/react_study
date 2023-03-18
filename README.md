@@ -216,7 +216,7 @@ class MyApp extends Component {
 export default MyApp;
 ```
 
-### 7. state
+### 7. state 状态
 
 ```js
 import React, { Component } from 'react';
@@ -350,9 +350,9 @@ export default MyApp;
 
 ### 10. setState 同步异步
 
-### 每次调用 setState 都会引发虚拟 dom 的对比
+### <1> 每次调用 setState 都会引发虚拟 dom 的对比，每次 setState 都会引起 render 重新渲染
 
-### 1.setState 处在同步的逻辑中，是异步更新状态，异步更新真实 dom
+### <2> setState 处在同步的逻辑中，是异步更新状态，异步更新真实 dom
 
 #### setState 会合并更新[batch update]状态，把几次的 setState 合并成一次以最后一次为主，访问到的状态是老状态
 
@@ -360,7 +360,7 @@ export default MyApp;
 
 #### 等同步的执行完，再执行异步的
 
-#### 2.setState 处在异步的逻辑中，是同步更新状态，同步更新真实 dom，访问到的状态是更新后的状态
+### <3> setState 处在异步的逻辑中，是同步更新状态，同步更新真实 dom，访问到的状态是更新后的状态
 
 ```js
 import React, { Component } from 'react';
@@ -438,11 +438,11 @@ export default MyApp;
 
 ### 11. props 属性
 
-### 在引用组件上使用 key="value"的形式传递 props，在类组件内部通过 this.props 访问 props 属性，在函数组件通过 props 形参访问
+### <1> 在引用组件上使用 key="value"的形式传递 props，在类组件内部通过 this.props 访问 props 属性，在函数组件通过 props 形参访问
 
-### 属性的验证：通过 prop-types，类组件写成对象属性的形式，函数组件写成类属性的形式
+### <2> 属性的验证：通过 prop-types，类组件写成对象属性的形式，函数组件写成类属性的形式
 
-### 属性的默认值：defaultProps，传进来的参数会覆盖默认值
+### <3> 属性的默认值：defaultProps，传进来的参数会覆盖默认值
 
 ```js
 import React, { Component } from 'react';
@@ -531,4 +531,123 @@ SiderBar.defaultProps = {
   background: '',
   position: '',
 };
+```
+
+### 12. 受控与非受控
+
+### <1> 表单的受控：靠修改 state 的值引起 render 重新渲染实现。通过表单组件的 value 属性以及 onChange 事件，value 的值由 state 控制，调用 onChange 去修改 state 的值，setState 每次改变都会触发 render 重新渲染，所以表单组件的 value 值能确保是最新的。
+
+### <2> 表单的非受控：是用 ref 取原生 dom 节点的方式，设置默认值用 defaultValue，但是无法实现与其他组件通信。
+
+### <3> 组件的受控：组件的数据渲染应该由被调用者传递的 props 完全控制，控制则为受控组件，否则是非受控组件。多写无状态组件，少写有状态组件。组件尽量不要有自己的状态，状态应该由传过来的 props 完全控制。
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  state = {
+    username: 'xiaoming',
+  };
+
+  render() {
+    const { username } = this.state;
+    return (
+      <div>
+        <input
+          value={username}
+          type="text"
+          onChange={(evt) => {
+            this.setState({
+              username: evt.target.value,
+            });
+          }}
+        />
+        <button
+          onClick={() => {
+            console.log(username);
+          }}
+        >
+          登录
+        </button>
+        <button
+          onClick={() => {
+            this.setState({
+              username: '',
+            });
+          }}
+        >
+          重置
+        </button>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### 13. 组件通信
+
+### <1> 父传子：在组件上通过 key="value"的形式传参给组件内部
+
+### <2> 子传父：在父组件上定义一个回调函数，子组件调用回调函数。多写写无状态组件，让组件变成受控组件，从父组件传属性来改造
+
+```js
+import React, { Component } from 'react';
+
+// 点击按钮让SiderBar显示隐藏
+class NavBar extends Component {
+  render() {
+    const { event } = this.props;
+    return (
+      <div style={{ background: 'green' }}>
+        <button
+          onClick={() => {
+            event();
+          }}
+        >
+          按钮
+        </button>
+        <span>NavBar</span>
+      </div>
+    );
+  }
+}
+
+class SiderBar extends Component {
+  render() {
+    return (
+      <ul style={{ background: 'yellow', width: 200 }}>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+      </ul>
+    );
+  }
+}
+
+class MyApp extends Component {
+  state = {
+    isShow: true,
+  };
+
+  handleEvent = () => {
+    this.setState({
+      isShow: !this.state.isShow,
+    });
+  };
+
+  render() {
+    const { isShow } = this.state;
+    return (
+      <div>
+        <NavBar event={this.handleEvent} />
+        {isShow && <SiderBar />}
+      </div>
+    );
+  }
+}
+
+export default MyApp;
 ```

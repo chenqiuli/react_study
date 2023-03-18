@@ -2,7 +2,7 @@
    在React16之后不用引入是在执行的时候会自动引入React */
 import React from 'react';
 import ReactDOM from "react-dom";
-import App from "./01-base_knowledge/17-props函数组件";
+import App from "./02-advanced/02-受控卖座选项卡";
 
 ReactDOM.render(<App />, document.getElementById("root"));
 

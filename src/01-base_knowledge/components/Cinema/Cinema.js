@@ -8,8 +8,8 @@ class Cinema extends Component {
     super();
     this.state = {
       data: [],
-      isShow: false,
-      text: '搜索',
+      fakeData: [],
+      mytext: ""
     };
   }
 
@@ -31,7 +31,6 @@ class Cinema extends Component {
       if (status === 0) {
         this.setState({
           data: data.cinemas,
-          fakeData: data.cinemas
         });
         new BetterScroll(".wrapper");
       }
@@ -42,41 +41,21 @@ class Cinema extends Component {
 
   myRef = React.createRef();
 
-  handleSearch = () => {
-    const { isShow, } = this.state;
-    this.setState({
-      isShow: true,
-      text: '取消'
-    });
-    if (isShow) {
-      this.myRef.current.value = "";
-      this.setState({
-        isShow: false,
-        text: "搜索"
-      });
-      this.fetchData();
-    }
+  dealData = () => {
+    return this.state.data.filter(item =>
+      item.name.toUpperCase().includes(this.state.mytext.toUpperCase())
+      ||
+      item.address.toUpperCase().includes(this.state.mytext.toUpperCase())
+    );
   };
 
-  handleInput = () => {
-    const { data } = this.state;
-    console.log(data);
-    const inputValue = this.myRef.current.value;
-    const newData = data.filter(item => item.name.includes(inputValue));
-    console.log(newData);
-    this.setState({
-      data: newData
-    });
-  };
 
   render () {
-    const { data, fakeData, isShow, text } = this.state;
+    const { /* data, fakeData,*/ mytext } = this.state;
     return (
       <div>
-        {/* <div className='header'>
-          {isShow ? <input style={{ width: 280 }} ref={this.myRef} onBlur={this.handleInput} /> : <div className='title'>影院</div>}
-          <button onClick={this.handleSearch}>{text}</button>
-        </div> */}
+        {/* 非受控 */}
+        {/* 
         <input onInput={(event) => {
           const inputValue = event.target.value;
           const newData = fakeData.filter(item =>
@@ -87,10 +66,16 @@ class Cinema extends Component {
           this.setState({
             data: newData
           });
+        }} /> */}
+        {/* 受控 */}
+        <input value={mytext} onChange={(evt) => {
+          this.setState({
+            mytext: evt.target.value
+          });
         }} />
         <div className='wrapper' ref="wrapper">
           <div className='content'>
-            {data.map(item => {
+            {this.dealData().map(item => {
               return (
                 <div key={item.cinemaId} className="cinemaItem">
                   <div>
@@ -103,7 +88,6 @@ class Cinema extends Component {
             })}
           </div>
         </div>
-
       </div>
     );
   }
