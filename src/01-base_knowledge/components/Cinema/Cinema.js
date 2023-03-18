@@ -33,7 +33,7 @@ class Cinema extends Component {
           data: data.cinemas,
           fakeData: data.cinemas
         });
-        new BetterScroll(this.refs.wrapper);
+        new BetterScroll(".wrapper");
       }
     }).catch(err => {
       console.log(err);

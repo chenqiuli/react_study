@@ -39,6 +39,7 @@ class MyApp extends Component {
   };
 
   handleClick2 = () => {
+    // setTimeout是异步的
     setTimeout(() => {
       this.setState({
         count: this.state.count + 1

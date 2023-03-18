@@ -35,7 +35,7 @@ class MyApp extends Component {
         {idx === 0 && <Film />}
         {idx === 1 && <Cinema />}
         {idx === 2 && <Mine />}
-        <ul >
+        <ul className='tabbar'>
           {list.map((item, index) => {
             return (
               <li

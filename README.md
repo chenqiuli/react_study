@@ -171,6 +171,10 @@ export default MyApp;
 
 ### 6. 事件绑定
 
+### react 的绑定事件机制跟普通事件是一样的吗？
+
+### 不一样，普通事件是直接绑定在当前元素身上，react 的事件是全部绑定在根节点身上，采取事件代理的方式冒泡到当前元素。但是 react 的事件跟普通事件一样都有 event 对象，用法一致。
+
 ```js
 import React, { Component } from 'react';
 
@@ -344,8 +348,187 @@ export default MyApp;
 
 ![](./images/4.gif)
 
-## 面试题
+### 10. setState 同步异步
 
-<font color="red" size="4">\* 1、react 的绑定事件机制跟普通事件是一样的吗？</font>
+### 每次调用 setState 都会引发虚拟 dom 的对比
 
-### 不一样，普通事件是直接绑定在当前元素身上，react 的事件是全部绑定在根节点身上，采取事件代理的方式冒泡到当前元素。但是 react 的事件跟普通事件一样都有 event 对象，用法一致。
+### 1.setState 处在同步的逻辑中，是异步更新状态，异步更新真实 dom
+
+#### setState 会合并更新[batch update]状态，把几次的 setState 合并成一次以最后一次为主，访问到的状态是老状态
+
+#### setState 接受第二个参数，第二个参数是回调函数，状态和 dom 更新完后就会被触发
+
+#### 等同步的执行完，再执行异步的
+
+#### 2.setState 处在异步的逻辑中，是同步更新状态，同步更新真实 dom，访问到的状态是更新后的状态
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  state = {
+    count: 0,
+  };
+
+  handleClick1 = () => {
+    this.setState(
+      {
+        count: this.state.count + 1,
+      },
+      () => {
+        console.log(this.state.count, '1()'); // 4
+      }
+    );
+    console.log(this.state.count, '1'); // 1-先执行，后面的按序号
+
+    this.setState(
+      {
+        count: this.state.count + 1,
+      },
+      () => {
+        console.log(this.state.count, '2()'); // 5
+      }
+    );
+    console.log(this.state.count, '2'); // 2
+
+    this.setState(
+      {
+        count: this.state.count + 1,
+      },
+      () => {
+        console.log(this.state.count, '3()'); // 6
+      }
+    );
+    console.log(this.state.count, '3'); // 3
+  };
+
+  handleClick2 = () => {
+    // setTimeout是异步的
+    setTimeout(() => {
+      this.setState({
+        count: this.state.count + 1,
+      });
+      console.log(this.state.count, '1'); // 1-先执行，后面的按序号
+
+      this.setState({
+        count: this.state.count + 1,
+      });
+      console.log(this.state.count, '2'); // 2
+
+      this.setState({
+        count: this.state.count + 1,
+      });
+      console.log(this.state.count, '3'); // 3
+    }, 0);
+  };
+
+  render() {
+    return (
+      <div>
+        {this.state.count}
+        <button onClick={this.handleClick1}>点击1</button>
+        <button onClick={this.handleClick2}>点击2</button>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### 11. props 属性
+
+### 在引用组件上使用 key="value"的形式传递 props，在类组件内部通过 this.props 访问 props 属性，在函数组件通过 props 形参访问
+
+### 属性的验证：通过 prop-types，类组件写成对象属性的形式，函数组件写成类属性的形式
+
+### 属性的默认值：defaultProps，传进来的参数会覆盖默认值
+
+```js
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
+class Navbar extends Component {
+  a = 1; // 对象属性，需要实例化对象，访问的时候需要new一个对象 let obj = new Navbar(); obj.a
+
+  // 把类属性挪到里面，要加static表示它是类属性，不需要实例化，访问的时候Navbar.propTypes
+  static propTypes = {
+    title: PropTypes.string,
+    leftBtn: PropTypes.bool,
+    rightBtn: PropTypes.bool,
+  };
+
+  static defaultProps = {
+    leftBtn: true,
+    rightBtn: true,
+  };
+
+  render() {
+    const { title, leftBtn, rightBtn } = this.props;
+    return (
+      <div>
+        {leftBtn && <button>返回</button>}
+        <span>{title}</span>
+        {rightBtn && <button>搜索</button>}
+      </div>
+    );
+  }
+}
+
+export default Navbar;
+
+// 类属性
+// Navbar.propTypes = {
+//   title: PropTypes.string,
+//   leftBtn: PropTypes.bool,
+//   rightBtn: PropTypes.bool
+// };
+// 默认属性
+// Navbar.defaultProps = {
+//   leftBtn: true,
+//   rightBtn: true
+// };
+```
+
+```js
+import React from 'react';
+import PropTypes from 'prop-types';
+
+export default function SiderBar(props) {
+  const { background, position } = props;
+  const obj = {
+    background,
+    width: 200,
+    height: 200,
+    position: 'fixed',
+    top: 30,
+  };
+  const obj1 = { left: 0 };
+  const obj2 = { right: 0 };
+  const styleObj =
+    position === 'left' ? { ...obj, ...obj1 } : { ...obj, ...obj2 };
+  return (
+    <div>
+      <ul style={styleObj}>
+        <li>111</li>
+        <li>222</li>
+        <li>333</li>
+        <li>444</li>
+        <li>555</li>
+        <li>666</li>
+      </ul>
+    </div>
+  );
+}
+
+// 函数组件只能通过类属性来定义类型
+SiderBar.propTypes = {
+  background: PropTypes.string,
+  position: PropTypes.string,
+};
+
+SiderBar.defaultProps = {
+  background: '',
+  position: '',
+};
+```
