@@ -1,10 +1,15 @@
 /* 在React16之前必须引入这一句，引入这句代码是在执行jsx的时候需要使用React.createElement转译为js对象，
    在React16之后不用引入是在执行的时候会自动引入React */
 import React from 'react';
-import ReactDOM from "react-dom";
-import App from "./02-advanced/02-受控卖座选项卡";
+// import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
+import App from "./02-advanced/06-发布订阅模式";
 
-ReactDOM.render(<App />, document.getElementById("root"));
+const container = document.getElementById("root");
+const root = createRoot(container);
+
+// ReactDOM.render(<App />, document.getElementById("root"));
+root.render(<App />);
 
 // ReactDOM.render(
 //   <div id="aaa" style={{ color: 'red' }}>

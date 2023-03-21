@@ -133,7 +133,7 @@ export default MyApp;
 
 ### 5. ref
 
-### ref 可以获取 dom 节点或者组件实例
+### ref 可以获取 dom 节点或者整个组件的实例
 
 ```js
 import React, { Component } from 'react';
@@ -535,7 +535,9 @@ SiderBar.defaultProps = {
 
 ### 12. 受控与非受控
 
-### <1> 表单的受控：靠修改 state 的值引起 render 重新渲染实现。通过表单组件的 value 属性以及 onChange 事件，value 的值由 state 控制，调用 onChange 去修改 state 的值，setState 每次改变都会触发 render 重新渲染，所以表单组件的 value 值能确保是最新的。
+### <1> 表单的受控：1.靠修改 state 的值引起 render 重新渲染实现。通过表单组件的 value 属性以及 onChange 事件，value 的值由 state 控制，调用 onChange 去修改 state 的值，setState 每次改变都会触发 render 重新渲染，所以表单组件的 value 值能确保是最新的。2.也可以靠 ref 获取子组件的实例，获取子组件 state 的值以及修改值
+
+### 原生的 input 标签跟 React 中的 input 标签有什么区别？1.原生 input 标签上的监听输入框实时改变的事件是 oninput，React 中监听输入框实时改变的事件是 onChange
 
 ### <2> 表单的非受控：是用 ref 取原生 dom 节点的方式，设置默认值用 defaultValue，但是无法实现与其他组件通信。
 
@@ -590,7 +592,7 @@ export default MyApp;
 
 ### <1> 父传子：在组件上通过 key="value"的形式传参给组件内部
 
-### <2> 子传父：在父组件上定义一个回调函数，子组件调用回调函数。多写写无状态组件，让组件变成受控组件，从父组件传属性来改造
+### <2> 子传父：在父组件上定义一个回调函数，子组件调用回调函数。父组件引用 ref 获取子组件的实例
 
 ```js
 import React, { Component } from 'react';
@@ -650,4 +652,83 @@ class MyApp extends Component {
 }
 
 export default MyApp;
+```
+
+### <3> 兄弟组件：通过父组件中间人模式通信，一组件回调给父组件，父组件存到 state，再传递给另一个组件，由此实现兄弟组件通信
+
+```js
+import React, { Component } from 'react';
+import axios from 'axios';
+import './css/兄弟组件通信.css';
+
+// FilmItem 与 FilmDetail通信
+class MyApp extends Component {
+  state = {
+    filmList: [],
+    info: '',
+  };
+
+  componentDidMount() {
+    axios({
+      method: 'get',
+      url:
+        'https://m.maizuo.com/gateway?cityId=110100&pageNum=1&pageSize=10&type=2&k=764626',
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929"}',
+        'X-Host': 'mall.film-ticket.film.list',
+      },
+    }).then((res) => {
+      this.setState({
+        filmList: res.data.data.films,
+      });
+    });
+  }
+
+  render() {
+    return (
+      <div className="app">
+        <div>
+          {this.state.filmList.map((item) => (
+            <FilmItem
+              key={item.filmId}
+              {...item}
+              onEventChange={(value) => {
+                this.setState({
+                  info: value,
+                });
+              }}
+            />
+          ))}
+        </div>
+
+        <FilmDetail info={this.state.info} />
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+
+const FilmItem = (props) => {
+  const { name, poster, actors, synopsis, onEventChange = () => {} } = props;
+  return (
+    <div
+      className="filmItem"
+      onClick={() => {
+        onEventChange(synopsis);
+      }}
+    >
+      <img src={poster} />
+      <div>
+        <p>{name}</p>
+        <p>主演：{actors.map((item) => item.name).join(' ')}</p>
+      </div>
+    </div>
+  );
+};
+
+function FilmDetail(props) {
+  return <div className="filmDetail">{props.info || '--'}</div>;
+}
 ```
