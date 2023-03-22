@@ -533,6 +533,74 @@ SiderBar.defaultProps = {
 };
 ```
 
+### <4> 特殊属性：children-插槽，在父组件文件中引入子组件标签的内部再插入 jsx，此时需要在子组件预留一个位置显示 children，children 是个数组。插槽一是为了复用，二是一定程度的减少父子通信
+
+```js
+import React, { Component } from 'react';
+
+// 点击展开收起让SiderBar显示隐藏，把button当成插槽放到父组件中去
+
+class Navbar extends Component {
+  render() {
+    return (
+      <div style={{ background: 'yellow' }}>
+        {this.props.children}
+        Navbar
+      </div>
+    );
+  }
+}
+
+class SiderBar extends Component {
+  render() {
+    return (
+      <div
+        style={{
+          background: '#fcc',
+          width: 300,
+          height: 300,
+          display: this.props.isShow ? 'block' : 'none',
+        }}
+      >
+        SiderBar
+      </div>
+    );
+  }
+}
+
+class MyApp extends Component {
+  state = {
+    isShow: false,
+  };
+
+  toggleShow = () => {
+    this.setState({
+      isShow: !this.state.isShow,
+    });
+  };
+
+  render() {
+    const { isShow } = this.state;
+    return (
+      <div>
+        <Navbar>
+          <button
+            onClick={() => {
+              this.toggleShow();
+            }}
+          >
+            展开收起
+          </button>
+        </Navbar>
+        <SiderBar isShow={isShow} />
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
 ### 12. 受控与非受控
 
 ### <1> 表单的受控：1.靠修改 state 的值引起 render 重新渲染实现。通过表单组件的 value 属性以及 onChange 事件，value 的值由 state 控制，调用 onChange 去修改 state 的值，setState 每次改变都会触发 render 重新渲染，所以表单组件的 value 值能确保是最新的。2.也可以靠 ref 获取子组件的实例，获取子组件 state 的值以及修改值
@@ -590,9 +658,9 @@ export default MyApp;
 
 ### 13. 组件通信
 
-### <1> 父传子：在组件上通过 key="value"的形式传参给组件内部
+### <1> 父子通信
 
-### <2> 子传父：在父组件上定义一个回调函数，子组件调用回调函数。父组件引用 ref 获取子组件的实例
+### 在父组件上通过 key="value" 的形式传参给子组件；在父组件上定义一个回调函数，子组件调用回调函数与父组件通信。父组件引用 ref 获取子组件的实例，获得子组件上所有的属性。
 
 ```js
 import React, { Component } from 'react';
@@ -654,7 +722,9 @@ class MyApp extends Component {
 export default MyApp;
 ```
 
-### <3> 兄弟组件：通过父组件中间人模式通信，一组件回调给父组件，父组件存到 state，再传递给另一个组件，由此实现兄弟组件通信
+### <2> 兄弟组件通信：
+
+### 通过父组件中间人模式通信，兄弟 A 组件回调给父组件，父组件存到 state，再传递给兄弟 B 组件，由此实现兄弟组件通信。兄弟组件通信不适用于叔侄通信，会显得代码很累赘。
 
 ```js
 import React, { Component } from 'react';
@@ -732,3 +802,235 @@ function FilmDetail(props) {
   return <div className="filmDetail">{props.info || '--'}</div>;
 }
 ```
+
+### <3> 跨组件通信
+
+### 通过发布订阅模式，定义一个共用的调度中心，内有发布订阅的方法，B 组件初始化就要订阅，在 A 组件一发布的时候就可以立马收到信息。
+
+```js
+import React, { Component } from 'react';
+import axios from 'axios';
+import './css/兄弟组件通信.css';
+
+const bus = {
+  list: [],
+
+  // 订阅
+  subscribe(callback) {
+    // console.log(callback);
+    this.list.push(callback);
+  },
+
+  // 发布
+  publish(text) {
+    // 遍历所有的list，将回调函数执行
+    this.list.forEach((callback) => {
+      callback && callback(text);
+    });
+  },
+};
+
+// FilmItem 与 FilmDetail通信
+class MyApp extends Component {
+  state = {
+    filmList: [],
+  };
+
+  componentDidMount() {
+    axios({
+      method: 'get',
+      url:
+        'https://m.maizuo.com/gateway?cityId=110100&pageNum=1&pageSize=10&type=2&k=764626',
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929"}',
+        'X-Host': 'mall.film-ticket.film.list',
+      },
+    }).then((res) => {
+      this.setState({
+        filmList: res.data.data.films,
+      });
+    });
+  }
+
+  render() {
+    return (
+      <div className="app">
+        <div>
+          {this.state.filmList.map((item) => (
+            <FilmItem key={item.filmId} {...item} />
+          ))}
+        </div>
+
+        <FilmDetail />
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+
+const FilmItem = (props) => {
+  const { name, poster, actors, synopsis } = props;
+  return (
+    <div
+      className="filmItem"
+      onClick={() => {
+        bus.publish(synopsis);
+      }}
+    >
+      <img src={poster} alt={name} />
+      <div>
+        <p>{name}</p>
+        <p>主演：{actors.map((item) => item.name).join(' ')}</p>
+      </div>
+    </div>
+  );
+};
+
+class FilmDetail extends Component {
+  state = {
+    info: '',
+  };
+
+  // 组件一上来就要订阅
+  componentDidMount() {
+    bus.subscribe((value) => {
+      this.setState({
+        info: value,
+      });
+    });
+  }
+
+  render() {
+    return <div className="filmDetail">{this.state.info || '--'}</div>;
+  }
+}
+```
+
+### <4> 跨组件通信
+
+### 所有想要通信的子组件必须包裹在 GlobalContext 定义的父组件内
+
+```md
+#### context 通信模式：生产者消费者模式
+
+#### 1.把父组件当成生产者，使用 GlobalContext.Provider 包裹起来，传递 value 属性
+
+#### 2.想要通信的子组件当成消费者，使用 GlobalContext.Consumer 包裹起来，里面使用回调函数取的共享状态的 value 属性，共享父组件的 value 属性
+```
+
+```js
+import React, { Component } from 'react';
+import axios from 'axios';
+import './css/兄弟组件通信.css';
+
+const GlobalContext = React.createContext(); // 创建一个生产者-供应商
+
+// FilmItem 与 FilmDetail通信
+class MyApp extends Component {
+  state = {
+    filmList: [],
+    info: '',
+  };
+
+  componentDidMount() {
+    axios({
+      method: 'get',
+      url:
+        'https://m.maizuo.com/gateway?cityId=110100&pageNum=1&pageSize=10&type=2&k=764626',
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929"}',
+        'X-Host': 'mall.film-ticket.film.list',
+      },
+    }).then((res) => {
+      this.setState({
+        filmList: res.data.data.films,
+      });
+    });
+  }
+
+  render() {
+    return (
+      <div className="app">
+        <GlobalContext.Provider
+          value={{
+            info: this.state.info,
+            changeInfo: (value) => {
+              this.setState({
+                info: value,
+              });
+            },
+          }}
+        >
+          <div>
+            {this.state.filmList.map((item) => (
+              <FilmItem key={item.filmId} {...item} />
+            ))}
+          </div>
+
+          <FilmDetail />
+        </GlobalContext.Provider>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+
+const FilmItem = (props) => {
+  const { name, poster, actors, synopsis } = props;
+  return (
+    <GlobalContext.Consumer>
+      {(value) => {
+        return (
+          <div
+            className="filmItem"
+            onClick={() => {
+              value.changeInfo(synopsis);
+            }}
+          >
+            <img src={poster} />
+            <div>
+              <p>{name}</p>
+              <p>主演：{actors.map((item) => item.name).join(' ')}</p>
+            </div>
+          </div>
+        );
+      }}
+    </GlobalContext.Consumer>
+  );
+};
+
+function FilmDetail() {
+  return (
+    <GlobalContext.Consumer>
+      {(value) => {
+        // console.log(value);
+        return <div className="filmDetail">{value.info ?? '--'}</div>;
+      }}
+    </GlobalContext.Consumer>
+  );
+}
+```
+
+### <5> 跨组件通信
+
+### redux 状态管理
+
+### 14. 生命周期
+
+### <1> 初始化
+
+### a. componentWillMount：16.2 版本后废弃，该状态是第一次上树前最后一次修改 state 的状态，dom 树还没渲染，只会执行一次。 UNSAFE_componentWillMount
+
+### b.render
+
+### c.componentDidMount：dom 树渲染完毕，只会执行一次。
+
+### 数据请求 axios、订阅函数调用、setInterval、基于创建完的 dom 进行初始化(BetterScroll)
+
+### <2> 运行中
+
+## 订阅发布模式，再听几遍

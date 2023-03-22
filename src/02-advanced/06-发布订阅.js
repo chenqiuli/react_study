@@ -12,32 +12,43 @@ class MyApp extends Component {
 
 export default MyApp;
 
+
 const bus = {
   list: [],
 
   // 订阅
   subscribe (callback) {
-    console.log(callback);
+    // console.log(callback);
     this.list.push(callback);
   },
 
   // 发布
-  publish () {
+  publish (text) {
     // 遍历所有的list，将回调函数执行
     this.list.forEach(callback => {
-      callback && callback();
+      callback && callback(text);
     });
   }
 };
 
+
+// 先订阅再发布,发布一般是异步的
 // 订阅者
-bus.subscribe(() => {
-  console.log(111);
+bus.subscribe((value) => {
+  console.log(111, value);
 });
 
-bus.subscribe(() => {
-  console.log(22);
+bus.subscribe((value) => {
+  console.log(22, value);
 });
 
 // 发布者
-bus.publish();
+setTimeout(() => {
+  bus.publish("text111");
+}, 0);
+setTimeout(() => {
+  bus.publish("text222");
+}, 1000);
+setTimeout(() => {
+  bus.publish("text333");
+}, 2000);
