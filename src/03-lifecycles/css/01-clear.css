@@ -1,0 +1,17 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+.ul {
+  height: 200px;
+  background: pink;
+  overflow: auto;
+  user-select: none;
+  cursor: pointer;
+}
+
+.ul li {
+  list-style: none;
+  height: 100px;
+}

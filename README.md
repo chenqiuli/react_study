@@ -1021,9 +1021,9 @@ function FilmDetail() {
 
 ### 14. 生命周期
 
-### <1> 初始化
+### <1> 初始化：componentWillMount -> render -> componentDidMount
 
-### a. componentWillMount：16.2 版本后废弃，该状态是第一次上树前最后一次修改 state 的状态，dom 树还没渲染，只会执行一次。 UNSAFE_componentWillMount
+### a. UNSAFE_componentWillMount：16.2 版本后废弃，该状态是第一次上树前最后一次修改 state 的状态，dom 树还没渲染，只会执行一次。
 
 ### b.render
 
@@ -1031,6 +1031,245 @@ function FilmDetail() {
 
 ### 数据请求 axios、订阅函数调用、setInterval、基于创建完的 dom 进行初始化(BetterScroll)
 
-### <2> 运行中
+### <2> 更新阶段：render -> componentWillUpdate -> render -> componentDidUpdate
 
-## 订阅发布模式，再听几遍
+### a.render
+
+### b.UNSAFE_componentWillUpdate：16.2 版本后废弃，更新之前的状态值。
+
+### c.render
+
+### d.componentDidUpdate：获取更新后的 dom 节点。缺点是：会执行多次，添加标志位进行判断。componentWillUpdate 有 2 个参数，prevProps 和 prevState，老的属性和老的状态
+
+### 老的状态：prevState
+
+### 老的属性：prevProps
+
+```js
+import React, { Component } from 'react';
+import axios from 'axios';
+import BetterScroll from 'better-scroll';
+
+class MyApp extends Component {
+  state = {
+    myname: 'qiu',
+    filmList: [],
+  };
+
+  componentDidMount() {
+    axios({
+      method: 'get',
+      url:
+        'https://m.maizuo.com/gateway?cityId=110100&pageNum=1&pageSize=10&type=2&k=764626',
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929"}',
+        'X-Host': 'mall.film-ticket.film.list',
+      },
+    }).then((res) => {
+      this.setState(
+        {
+          filmList: res.data.data.films,
+        }
+        // , () => {
+        //   console.log(document.getElementById("wrapper"));
+        //   new BetterScroll("#wrapper");
+        // }
+      );
+    });
+  }
+
+  UNSAFE_componentWillUpdate() {
+    console.log(
+      '更新之前的state状态',
+      document.getElementById('myname').innerHTML
+    ); //qiu
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // 更新后，想要获取dom节点
+    // 缺点：会执行多次，添加标志位-使用老的属性或状态去判断，避免重复执行
+    console.log(
+      '更新之后的state状态',
+      document.getElementById('myname').innerHTML
+    ); //QIU
+    // console.log(prevState); // 上一次的state，只有第一次的时候filmList是空的
+    if (!prevState.filmList.length) {
+      new BetterScroll('#wrapper');
+    }
+  }
+
+  render() {
+    return (
+      <div>
+        <button
+          onClick={() => {
+            this.setState({
+              myname: 'QIU',
+            });
+          }}
+        >
+          click
+        </button>
+        <p id="myname">{this.state.myname}</p>
+        <div
+          id="wrapper"
+          style={{
+            height: 100,
+            cursor: 'pointer',
+            background: 'yellow',
+            overflow: 'hidden',
+            userSelect: 'none',
+          }}
+        >
+          <ul>
+            {this.state.filmList.map((item) => {
+              return <li key={item.filmId}>{item.name}</li>;
+            })}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### e.shouldComponentUpdate：
+
+### 该生命周期是为了防止无效的 diff 算法计算，作为优化性能的生命周期。返回 true 会渲染，返回 false 不会渲染。参数是下一次的 props 属性和下一次的 state 状态。
+
+### 老的状态：this.state 新的状态：nextState
+
+### 老的属性：this.props 新的属性：nextProps
+
+```js
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  state = {
+    myname: 'qiu',
+  };
+
+  UNSAFE_componentWillUpdate() {
+    console.log('UNSAFE_componentWillUpdate');
+  }
+
+  componentDidUpdate() {
+    console.log('componentDidUpdate');
+  }
+
+  shouldComponentUpdate = (nextProps, nextState) => {
+    // 该案例中已经点击了click把myname改为QIU，但是每次再次点击还是会执行生命周期以及render重新渲染
+    // console.log(this.state, nextState);
+    if (JSON.stringify(this.state) !== JSON.stringify(nextState)) {
+      return true;
+    }
+    return false;
+  };
+
+  render() {
+    console.log('render');
+    return (
+      <div>
+        <button
+          onClick={() => {
+            this.setState({
+              myname: 'QIU',
+            });
+          }}
+        >
+          click
+        </button>
+        {this.state.myname}
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### f.UNSAFE_componentWillReceiveProps：该生命周期只能用于子组件，在父组件修改属性时触发
+
+### <3> 销毁阶段
+
+### a.componentWillUnMount：当组件销毁时，挂载在 window 上的事件没有销毁掉，在这个生命周期销毁。常见于卸载挂在 window 上的事件，卸载定时器等
+
+```js
+import React, { Component } from 'react';
+
+class Child extends Component {
+  state = {
+    num: 0,
+  };
+
+  timer = null;
+
+  componentDidMount() {
+    // 窗口的变化
+    window.onresize = () => {
+      console.log('resize');
+    };
+    // 定时器
+    this.timer = setInterval(() => {
+      console.log('setInterval');
+      this.setState((prevState) => ({
+        num: prevState.num + 1,
+      }));
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    console.log('componentWillUnmount');
+    // 清除window上挂载的事件
+    window.onresize = null;
+    // 清除定时器
+    clearInterval(this.timer);
+  }
+
+  render() {
+    return <div>Child {this.state.num}</div>;
+  }
+}
+
+class MyApp extends Component {
+  state = {
+    isShow: true,
+  };
+
+  render() {
+    return (
+      <div>
+        <button
+          onClick={() => {
+            this.setState({
+              isShow: !this.state.isShow,
+            });
+          }}
+        >
+          click
+        </button>
+        {this.state.isShow && <Child />}
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### 15. 新生命周期
+
+### a. getDerivedStateFromProp：从属性中获取衍生的状态，把属性转换为状态。第一次初始化，自己更新，父传子，都会触发这个生命周期。类属性，this 指向 undefined，没有 this.state
+
+### return 一个对象，return 的结果会与 state 进行合并覆盖，配合 componentDidUpdate 进行异步请求
+
+### nextProps-最新的属性 nextState-最新的状态
+
+### 初始化中代替 componentWillMount，父传子代替 componentWillReceivveProps
+
+### b.getSnapshotBeforeUpdate：在更新之前记录下快照，返回一个值
+
+### 执行顺序：render -> getSnapshotBeforeUpdate -> componentDidUpdate

@@ -54,3 +54,5 @@ obj1.getName.apply(obj2, ['汕头', '广州']); // obj2，来自汕头去往广�
 obj1.getName.bind(obj2, '汕头', '广州')(); // obj2，来自汕头去往广州
 obj1.getName.bind(obj2, ['汕头'], ['广州'])(); // obj2，来自汕头去往广州
 ```
+
+## 订阅发布模式，再听几遍
