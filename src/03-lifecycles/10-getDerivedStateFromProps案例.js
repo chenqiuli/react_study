@@ -56,7 +56,7 @@ class Film extends Component {
     if (this.state.type === prevState.type) {
       return;
     }
-    // 陷入死循环是因为getDerivedStateFromProps获取到父组件最新的props时，自身也会进行render，于是componentDidUpdate也会重复执行
+    // 陷入死循环是因为getDerivedStateFromProps获取到父组件最新的props时，自身也会进行render，于是componentDidUpdate也会重复执行  
     if (this.state.type === 0) {
       axios({
         url: "https://m.maizuo.com/gateway?cityId=110100&pageNum=1&pageSize=10&type=1&k=7058163",

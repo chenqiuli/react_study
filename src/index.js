@@ -3,7 +3,7 @@
 import React from 'react';
 // import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
-import App from "./03-lifecycles/13-swiper1_同步";
+import App from "./03-lifecycles/10-getDerivedStateFromProps案例";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
