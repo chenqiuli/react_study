@@ -62,7 +62,7 @@ ReactDOM.render(
 );
 ```
 
-### 2. class 组件
+### 2. class 组件 rcc
 
 ```js
 import React from 'react';
@@ -136,37 +136,10 @@ export default MyApp;
 ### ref 可以获取 dom 节点或者整个组件的实例
 
 ```js
-import React, { Component } from 'react';
-
-class MyApp extends Component {
-  myref = React.createRef();
-
-  handleClick = () => {
-    console.log(this.refs.myref.value);
-  };
-
-  render() {
-    return (
-      <div>
-        {/* deprecated */}
-        <input ref="myref" id="input1" />
-        <button onClick={this.handleClick}>点击</button>
-        <br />
-        {/* new */}
-        <input ref={this.myref} id="input2" />
-        <button
-          onClick={() => {
-            console.log(this.myref.current.value);
-          }}
-        >
-          点击
-        </button>
-      </div>
-    );
-  }
-}
-
-export default MyApp;
+myref = React.createRef();
+<input ref={this.myref} id="input2" />;
+// 访问 this.myref.current.value
+console.log(this.myref.current.value);
 ```
 
 ### 6. 事件绑定
@@ -1273,3 +1246,238 @@ export default MyApp;
 ### b.getSnapshotBeforeUpdate：在更新之前记录下快照，返回一个值
 
 ### 执行顺序：render -> getSnapshotBeforeUpdate -> componentDidUpdate
+
+### 15. React Hooks
+
+### hooks 好处：
+
+### 1.class 组件生命周期复杂，hooks 简化了生命周期逻辑的复杂度。
+
+### 2.函数组件引用的时候不需要 new 出来，节省了内存空间
+
+### vscode 快捷键：rfc
+
+### a. useState：状态钩子函数
+
+### 参数是数组的解构而来。缓存了状态，因为每次 useState 改变了之后，整个函数都会重新渲染，但是 state 的值却在上次的基础上更新，所以 useState 有缓存变量的作用。 - 闭包的原理
+
+```js
+const [list, setlist] = useState([]);
+```
+
+### b. useEffect：副作用钩子函数
+
+### 依赖项为[] = componentDidMount，只会执行一次
+
+### 依赖项[name]一改变，就会执行 useEffect 函数 = componentDidUpdate
+
+### 回调函数内再 return 出一个回调函数 = componentWillUnMount，只会执行一次
+
+### c. useCallback：记忆函数，性能优化。
+
+### 每次 useState 更新，函数都会重新创建一次，所以每次定义的函数都会重新定义一遍，很消耗性能。useCallback 是让跟依赖项不相关的 useState 改变时，返回的函数是缓存中的函数，如果依赖项改变，useCallback 是需要重新创建的。
+
+### d. useMemo：记忆函数，计算属性，性能优化
+
+### useMemo 相当于 vue 的计算属性，返回一个结果，返回的结果可以是任意类型。useMemo 也是记忆组件，缓存数据的作用，当依赖项改变时，重新创建新的函数计算；若依赖项没改变，从缓存中读取数据。useMemo 这段函数比 useEffect 还先执行，所以 useMemo 内取的 state 值一开始都是初始化的值
+
+```js
+const getDataList = useMemo(() => [1, 2, 3], []);
+{
+  getDataList.map((item) => <p key={item}>{item}</p>);
+}
+```
+
+### e. useRef
+
+### 1.获取原生 dom 节点
+
+```js
+const myRef = useRef();
+<input ref={myRef} />
+<button onClick={() => {
+  console.log(myRef.current.value);
+}}>click</button>
+```
+
+### 2.获取子组件的实例
+
+```js
+// 父组件
+const childRef = useRef(null);
+<Child ref={childRef} type={0} />
+<button onClick={() => {
+  // console.log(childRef.current); 子组件的实例
+  childRef.current.setname("QIU");
+}}>change-child-name</button>
+
+// Child组件
+const Child = forwardRef((props, ref) => {
+  // console.log(props, ref);
+  const [name, setname] = useState("qiu");
+
+  // 把方法暴露在ref的current下
+  useImperativeHandle(
+    ref,
+    () => ({
+      name,
+      setname
+    }),
+  );
+
+  return <div>Child-{name}</div>;
+});
+```
+
+### 3.保存变量：函数组件重新渲染变量会存储上一次的值，实现类似 useState 保存变量功能
+
+```js
+const countRef = useRef(0);
+<p>{countRef.current}</p>;
+<button
+  onClick={() => {
+    countRef.current++;
+  }}
+>
+  change-count
+</button>;
+```
+
+### f. useContext：跨函数组件通信钩子函数
+
+### 简化了 class 类组件的写法，class 类组件消费者要在回调函数里面才能拿到共享 value，使用 useContext 可以直接拿到共享 value
+
+```md
+- 1.创建共享中心：const GlobalContext = React.createContext();
+- 2.把父组件当生产者，需要传的值放在 value 属性里
+- <GlobalContext.Provider value={{
+     detailInfo,
+     setdetailInfo
+   }}>
+  </GlobalContext.Provider>
+- 3.把子组件当消费者：const value = useContext(GlobalContext);
+```
+
+### g. useReducer：状态钩子函数
+
+### useReducer 把状态全部抽离出去外面管理，降低组件内数据层与视图层的耦合度。先定义好 initialState 和 reducer 函数，useReducer 只能写在父组件上，然后结合 useContext 把状态和触发函数传递给子组件。
+
+### useReducer 缺点：useReducer 不能实现异步请求
+
+```js
+import React, { useContext, useEffect, useReducer } from 'react';
+import axios from 'axios';
+
+const GlobalContext = React.createContext();
+
+const initialState = {
+  filmList: [],
+  detailInfo: '',
+};
+
+const reducer = (prevState, action) => {
+  const newState = { ...prevState };
+  switch (action.type) {
+    case 'setFilmList':
+      newState.filmList = action.value;
+      return newState;
+
+    case 'setDetailInfo':
+      newState.detailInfo = action.value;
+      return newState;
+
+    default:
+      return prevState;
+  }
+};
+
+export default function MyApp() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  /**
+   * useReducer不能实现异步请求，redux可以，依靠中间件
+   */
+  useEffect(() => {
+    axios({
+      method: 'get',
+      url:
+        'https://m.maizuo.com/gateway?cityId=110100&pageNum=1&pageSize=10&type=2&k=764626',
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929"}',
+        'X-Host': 'mall.film-ticket.film.list',
+      },
+    }).then((res) => {
+      dispatch({
+        type: 'setFilmList',
+        value: res.data.data.films,
+      });
+    });
+  }, []);
+
+  return (
+    <GlobalContext.Provider
+      value={{
+        state,
+        dispatch,
+      }}
+    >
+      <div>
+        {state.filmList.map((item) => (
+          <FilmItem key={item.filmId} {...item} />
+        ))}
+        <FilmDetail />
+      </div>
+    </GlobalContext.Provider>
+  );
+}
+
+const FilmItem = ({ name, poster, synopsis }) => {
+  const { dispatch } = useContext(GlobalContext);
+  return (
+    <div
+      style={{ marginBottom: 10 }}
+      onClick={() =>
+        dispatch({
+          type: 'setDetailInfo',
+          value: synopsis,
+        })
+      }
+    >
+      <img
+        src={poster}
+        alt={name}
+        style={{
+          width: 100,
+          height: 100,
+          marginRight: 10,
+          cursor: 'pointer',
+        }}
+      />
+      <span>电影名称：{name}</span>
+    </div>
+  );
+};
+
+const FilmDetail = () => {
+  const { state } = useContext(GlobalContext);
+  return (
+    <div
+      style={{
+        background: 'yellow',
+        width: 300,
+        height: 300,
+        position: 'fixed',
+        right: 0,
+        top: 0,
+      }}
+    >
+      FilmDetail-{state.detailInfo}
+    </div>
+  );
+};
+```
+
+### h. 自定义 hooks
+
+### 复用组件逻辑，更加符合函数式编程。每次调用自定义 hooks，都会引起组件重新渲染，命名必须以 use 开头

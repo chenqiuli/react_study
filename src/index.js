@@ -3,7 +3,7 @@
 import React from 'react';
 // import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
-import App from "./03-lifecycles/10-getDerivedStateFromProps案例";
+import App from "./04-hooks/13-自定义hooks";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
