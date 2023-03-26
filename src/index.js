@@ -3,7 +3,7 @@
 import React from 'react';
 // import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
-import App from "./04-hooks/13-自定义hooks";
+import App from "./05-路由.js/MyApp";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
