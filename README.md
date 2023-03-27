@@ -1481,3 +1481,97 @@ const FilmDetail = () => {
 ### h. 自定义 hooks
 
 ### 复用组件逻辑，更加符合函数式编程。每次调用自定义 hooks，都会引起组件重新渲染，命名必须以 use 开头
+
+<hr/>
+
+### 16. React 路由
+
+### 在 React 里，万物皆组件
+
+### 1. 常见的路由两种模式：BrowserRouter 和 HashRouter，一级路由配置在 Router 下，嵌套路由配置在组件内部
+
+##### 什么时候用嵌套路由：一个页面中有一部分组件是需要根据路径显示隐藏的，就需要设计成嵌套路由
+
+### a. HashRouter：会在浏览器带#号，利用 location.hash 可以拿到哈希值，只有当前的哈希值跟 path 路径匹配到了，组件才会渲染展示
+
+### b. BrowserRouter：浏览器不带#号
+
+```js
+<BrowserRouter>
+  {/* 匹配一级路由，若是嵌套路由，需写在组件内部 */}
+  <Switch>
+    <Route path="/films" component={Films}></Route>
+    <Route path="/cinemas" component={Cinemas}></Route>
+    <Route path="/mine" component={Mine}></Route>
+    {/* 动态路由 */}
+    <Route path="/filmdetail/:id" component={FilmDetail} />
+
+    <Redirect from="/" to="/films" exact />
+    <Route component={NotFound} />
+  </Switch>
+
+  {/* 留好插槽给TabBar组件 */}
+  {props.children}
+</BrowserRouter>
+```
+
+### 2. Redirect：路由重定向："/" 自动跳转到 "/films"，exact 参数表示是否精确匹配的意思，如果不精确匹配，所有的 path 路径都符合"/"开头，那么走到这里后面的代码就不走了
+
+### 3. Switch 组件：理解成 js 的 switch 分支，匹配到某一个 Route 就 break 跳出了 Switch 分支
+
+##### 为何要使用 Switch 组件：使用了 Redirect 组件后，写在前面的 Route 组件的 path 路径都是匹配"/"开头的，刷新之后还是会走到重定向
+
+### 4. 声明式导航：利用 a 链接，NavLink 组件可以自动实现路由与点击激活状态呼应
+
+### 5. 编程式导航：利用原生 js 的 location.hash，history.push
+
+### 6. 路由传参：
+
+### a. 动态路由：id 会带在 url 上，刷新页面不会报错
+
+```js
+// 路由配置
+<Route path="/filmdetail/:id" component={FilmDetail} />;
+// 跳转
+const handleClick = () => {
+  history.push(`/filmdetail/${item.filmId}`);
+};
+// 获取动态id
+props.match.params.id;
+```
+
+### b. query 传参
+
+```js
+// 路由配置
+<Route path="/filmdetail" component={FilmDetail} />;
+// 跳转
+const handleClick = () => {
+  history.push({
+    pathname: '/filmdetail',
+    query: {
+      id: item.filmId,
+    },
+  });
+};
+// 获取动态id
+props?.location?.query?.id;
+```
+
+### c. state 传参
+
+```js
+// 路由配置
+<Route path="/filmdetail" component={FilmDetail} />;
+// 跳转
+const handleClick = () => {
+  history.push({
+    pathname: '/filmdetail',
+    state: {
+      id: item.filmId,
+    },
+  });
+};
+// 获取动态id
+props?.location?.state?.id;
+```

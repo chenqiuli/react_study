@@ -9,8 +9,9 @@ import CinemaActivePng from '../../assets/cinemas_active.png';
 // import ConsultActivePng from '../../assets';
 import MineActivePng from '../../assets/mine_active.png';
 import { useHistory, useLocation } from 'react-router-dom';
+import { hasTabMenu } from '../../const';
 
-export default function TabBar(props) {
+export default function TabBar() {
   const [tablist] = useState([
     {
       id: 0,
@@ -45,18 +46,20 @@ export default function TabBar(props) {
   const history = useHistory();
   const location = useLocation();
   const pathname = location.pathname;
-  console.log(pathname);
 
   useEffect(() => {
-    const { id } = tablist.find((item) => {
-      if (pathname !== '/') {
-        return pathname.includes(item.to);
-      }
-      return {
-        id: 0,
-      };
-    });
-    setactive(id);
+    // console.log(pathname, 'pathname');
+    if (hasTabMenu.includes(pathname)) {
+      const { id } = tablist?.find((item) => {
+        if (pathname !== '/') {
+          return pathname.includes(item.to);
+        }
+        return {
+          id: 0,
+        };
+      });
+      setactive(id);
+    }
   }, [pathname]);
 
   return (
@@ -71,7 +74,7 @@ export default function TabBar(props) {
           className={index === active ? 'active' : ''}
         >
           <img
-            src={index == active ? item.asset_active : item.asset}
+            src={index === active ? item.asset_active : item.asset}
             alt={item.text}
           />
           <p>{item.text}</p>

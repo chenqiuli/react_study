@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function useFetchFilmList({ type, k }) {
@@ -6,9 +6,7 @@ export default function useFetchFilmList({ type, k }) {
 
   useEffect(() => {
     axios({
-      url:
-        // 'https://m.maizuo.com/gateway?cityId=440100&pageNum=1&pageSize=10&type=2&k=2924316'
-        `https://m.maizuo.com/gateway?cityId=440100&pageNum=1&pageSize=10&type=1${type}&k=${k}`,
+      url: `https://m.maizuo.com/gateway?cityId=440100&pageNum=1&pageSize=10&type=${type}&k=${k}`,
       headers: {
         'X-Client-Info':
           '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"440100"}',
@@ -21,6 +19,7 @@ export default function useFetchFilmList({ type, k }) {
       }
     });
   }, []);
+
   return {
     filmlist,
   };

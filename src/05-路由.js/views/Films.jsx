@@ -83,6 +83,6 @@ export default function Films(props) {
 }
 
 /**
- * 声明式导航：a链接  NavLink 可以自动实现路由与点击激活状态呼应
- * 编程式导航：location.hash
+ * 声明式导航：利用a链接  NavLink 可以自动实现路由与点击激活状态呼应
+ * 编程式导航：利用原生js的location.hash    history.push
  */

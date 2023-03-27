@@ -1,9 +1,16 @@
 import React from 'react';
-import { HashRouter, Route, Redirect, Switch } from 'react-router-dom';
+import {
+  HashRouter,
+  Route,
+  Redirect,
+  Switch,
+  BrowserRouter,
+} from 'react-router-dom';
 import Films from '../views/Films';
 import Cinemas from '../views/Cinemas';
 import Mine from '../views/Mine';
 import NotFound from '../views/NotFound';
+import FilmDetail from '../views/FilmDetail';
 
 /**
  *
@@ -18,7 +25,6 @@ import NotFound from '../views/NotFound';
  */
 
 export default function IndexRouter(props) {
-  // console.log(props, ';;;ppp');
   return (
     <HashRouter>
       {/* 匹配一级路由，若是嵌套路由，需写在组件内部 */}
@@ -26,10 +32,17 @@ export default function IndexRouter(props) {
         <Route path="/films" component={Films}></Route>
         <Route path="/cinemas" component={Cinemas}></Route>
         <Route path="/mine" component={Mine}></Route>
+
+        {/* 动态路由 */}
+        {/* <Route path="/filmdetail/:id" component={FilmDetail} /> */}
+        {/* query传参 */}
+        <Route path="/filmdetail" component={FilmDetail} />
+
         <Redirect from="/" to="/films" exact />
         <Route component={NotFound} />
       </Switch>
 
+      {/* 留好插槽给TabBar组件 */}
       {props.children}
     </HashRouter>
   );
