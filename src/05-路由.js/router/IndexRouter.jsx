@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  HashRouter,
+  // HashRouter,
   Route,
   Redirect,
   Switch,
@@ -11,6 +11,9 @@ import Cinemas from '../views/Cinemas';
 import Mine from '../views/Mine';
 import NotFound from '../views/NotFound';
 import FilmDetail from '../views/FilmDetail';
+import Login from '../views/Login';
+import Consult from '../views/Consult';
+import FilmsOrder from '../views/FilmsOrder';
 
 /**
  *
@@ -24,26 +27,46 @@ import FilmDetail from '../views/FilmDetail';
  *
  */
 
+const isAuth = () => localStorage.getItem('token');
+
+// console.log(isAuth(), 'isAuth');
+
 export default function IndexRouter(props) {
   return (
-    <HashRouter>
+    <BrowserRouter>
       {/* 匹配一级路由，若是嵌套路由，需写在组件内部 */}
       <Switch>
+        {/* Route的component属性使用的组件是把组件当成Route的孩子，组件内部会有history属性 */}
         <Route path="/films" component={Films}></Route>
         <Route path="/cinemas" component={Cinemas}></Route>
-        <Route path="/mine" component={Mine}></Route>
+        <Route path="/consult" component={Consult} />
+
+        {/* 路由守卫 */}
+        {/* <Route path="/mine" component={Mine}></Route> */}
+        <Route
+          path="/mine"
+          render={(props) => {
+            // 把组件<Login/>实例化使用，相当于new，组件内部是没有props对象的，在回调参数内把props手动传递下去，组件才会含有history属性
+            // 如果不在回调参数内把props手动传递下去，React提供了一个高阶组件给任何组件使用，withRouter让被包裹的组件含有history属性
+            return isAuth() ? <Mine /> : <Redirect to="/login" {...props} />;
+          }}
+        />
+
+        <Route path="/login" component={Login} />
+        <Route path="/filmsorder" component={FilmsOrder} />
 
         {/* 动态路由 */}
-        {/* <Route path="/filmdetail/:id" component={FilmDetail} /> */}
-        {/* query传参 */}
-        <Route path="/filmdetail" component={FilmDetail} />
+        <Route path="/filmdetail/:id" component={FilmDetail} />
+        {/* query传参/state传参 */}
+        {/* <Route path="/filmdetail" component={FilmDetail} /> */}
 
+        {/* 精准匹配以/开头 */}
         <Redirect from="/" to="/films" exact />
         <Route component={NotFound} />
       </Switch>
 
       {/* 留好插槽给TabBar组件 */}
       {props.children}
-    </HashRouter>
+    </BrowserRouter>
   );
 }

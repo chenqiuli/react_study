@@ -1,24 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../css/filmdetail.css';
+import styles from '../css/filmdetail.module.css';
 import TitleBar from '../components/TitleBar';
 import MBetterScroll from '../components/MBetterScroll';
+import { LeftOutlined } from '@ant-design/icons';
+import { useHistory } from 'react-router-dom';
 
 export default function FilmDetail(props) {
   const [info, setinfo] = useState({});
   const [show, setshow] = useState(false);
 
   // 动态路由，id会带在url上，刷新页面不会报错
-  // const id = props.match.params.id;
+  const id = props.match.params.id;
   // query传参
   // const id = props?.location?.query?.id;
   // state传参
-  const id = props?.location?.state?.id;
-  console.log(id);
+  // const id = props?.location?.state?.id;
+  // console.log(id);
 
   useEffect(() => {
     axios({
-      url: 'https://m.maizuo.com/gateway?filmId=6256&k=6503339',
+      url: `https://m.maizuo.com/gateway?filmId=${id}&k=6503339`,
       headers: {
         'X-Client-Info':
           '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"440100"}',
@@ -37,8 +39,7 @@ export default function FilmDetail(props) {
   useEffect(() => {
     window.addEventListener('scroll', () => {
       const scrollTop = document.documentElement.scrollTop;
-      console.log(scrollTop);
-      if (scrollTop > 66) {
+      if (scrollTop >= 60) {
         setshow(true);
       } else {
         setshow(false);
@@ -46,22 +47,29 @@ export default function FilmDetail(props) {
     });
   }, []);
 
+  const history = useHistory();
+
   return (
-    <div className="filmdetail">
-      {/* {show && ( */}
-      <div className="titCom">
-        <div className="tit">
-          <p>@</p>
-          <p>{info.name}</p>
+    <div className={styles.filmdetail}>
+      {show && (
+        <div className={styles.titCom}>
+          <div style={{ float: 'left' }}>
+            <LeftOutlined
+              onClick={() => {
+                history.goBack();
+              }}
+            />
+          </div>
+          <div style={{ textAlign: 'center' }}> {info.name}</div>
         </div>
-      </div>
-      {/* )} */}
+      )}
       <div>
         <img src={info.poster} alt={info.name} />
-        <div className="info">
+        <div className={styles.info}>
           <div>
             <span>{info.name}</span>
-            <span>{info.filmType?.name}</span>
+            <span className={styles.filmType}>{info.filmType?.name}</span>
+            {info.grade && <span className={styles.grade}>{info.grade}分</span>}
           </div>
           <div>{info.category}</div>
           <div>
@@ -70,7 +78,7 @@ export default function FilmDetail(props) {
           <div>{info.synopsis}</div>
         </div>
       </div>
-      <div className="actors_detail">
+      <div className={styles.actors_detail}>
         <TitleBar text="演职人员" />
         <MBetterScroll dep={info}>
           {info.actors?.map((item, index) => {
@@ -84,7 +92,7 @@ export default function FilmDetail(props) {
           })}
         </MBetterScroll>
       </div>
-      <div className="actors_detail2">
+      <div className={styles.actors_detail2}>
         <TitleBar text="剧照">
           <div
             style={{
@@ -113,7 +121,7 @@ export default function FilmDetail(props) {
           })}
         </MBetterScroll>
       </div>
-      <div style={{ height: 900 }}>1</div>
+      <div className={styles.footerBtn}>选座购票</div>
     </div>
   );
 }

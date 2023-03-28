@@ -4,6 +4,7 @@
   height: 20px;
   line-height: 20px;
   justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 .titleBar .text {

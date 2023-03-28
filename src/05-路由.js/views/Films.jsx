@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Redirect, Switch, Route } from 'react-router-dom';
-import '../css/Films.css';
+import styles from '../css/Films.module.css';
 import NowPlaying from './films/NowPlaying';
 import SoonComing from './films/SoonComing';
 
@@ -40,10 +40,10 @@ export default function Films(props) {
   }, []);
 
   return (
-    <div className="films">
-      <div className={fixed ? 'header_fix' : ''}>
-        {showTitle && <div className="title">电影</div>}
-        <ul className={`tabList`}>
+    <div className={styles.films}>
+      <div className={fixed ? styles.header_fix : ''}>
+        {showTitle && <div className={styles.title}>电影</div>}
+        <ul className={styles.tabList}>
           {tabList.map((item, index) => (
             <li
               key={index}
@@ -55,7 +55,7 @@ export default function Films(props) {
                   history.push('/films/sooncoming');
                 }
               }}
-              className={active === index ? 'actives' : ''}
+              className={active === index ? styles.active : ''}
             >
               {item}
             </li>

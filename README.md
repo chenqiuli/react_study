@@ -1,3 +1,5 @@
+# React 全家桶
+
 ## 一、React 介绍
 
 ### 1. React 起源与发展
@@ -12,7 +14,7 @@
 
 ![](./images/3.png)
 
-## 二、create-react-app
+## 二、[create-react-app](https://create-react-app.dev/docs/proxying-api-requests-in-development)
 
 ### 1.方式一：需全局安装 create-react-app
 
@@ -629,7 +631,7 @@ class MyApp extends Component {
 export default MyApp;
 ```
 
-### 13. 组件通信
+## 四、组件通信
 
 ### <1> 父子通信
 
@@ -992,7 +994,7 @@ function FilmDetail() {
 
 ### redux 状态管理
 
-### 14. 生命周期
+## 五、生命周期
 
 ### <1> 初始化：componentWillMount -> render -> componentDidMount
 
@@ -1247,7 +1249,7 @@ export default MyApp;
 
 ### 执行顺序：render -> getSnapshotBeforeUpdate -> componentDidUpdate
 
-### 15. React Hooks
+## 六、Hooks
 
 ### hooks 好处：
 
@@ -1484,9 +1486,9 @@ const FilmDetail = () => {
 
 <hr/>
 
-### 16. React 路由
+## 七、路由
 
-### 在 React 里，万物皆组件
+### 在 React 里，万物皆组件，路由也是组件
 
 ### 1. 常见的路由两种模式：BrowserRouter 和 HashRouter，一级路由配置在 Router 下，嵌套路由配置在组件内部
 
@@ -1494,7 +1496,7 @@ const FilmDetail = () => {
 
 ### a. HashRouter：会在浏览器带#号，利用 location.hash 可以拿到哈希值，只有当前的哈希值跟 path 路径匹配到了，组件才会渲染展示
 
-### b. BrowserRouter：浏览器不带#号
+### b. BrowserRouter：浏览器不带#号，
 
 ```js
 <BrowserRouter>
@@ -1521,11 +1523,13 @@ const FilmDetail = () => {
 
 ##### 为何要使用 Switch 组件：使用了 Redirect 组件后，写在前面的 Route 组件的 path 路径都是匹配"/"开头的，刷新之后还是会走到重定向
 
-### 4. 声明式导航：利用 a 链接，NavLink 组件可以自动实现路由与点击激活状态呼应
+### 4. 路由跳转
 
-### 5. 编程式导航：利用原生 js 的 location.hash，history.push
+### a. 声明式导航：利用 a 链接，NavLink 组件可以自动实现路由与点击激活状态呼应
 
-### 6. 路由传参：
+### b. 编程式导航：利用原生 js 的 location.hash，history.push
+
+### 5. 路由传参：
 
 ### a. 动态路由：id 会带在 url 上，刷新页面不会报错
 
@@ -1574,4 +1578,104 @@ const handleClick = () => {
 };
 // 获取动态id
 props?.location?.state?.id;
+```
+
+### 5. 路由拦截：
+
+### 路由拦截用于做页面的权限控制，登录过后才能进入我的页面
+
+```js
+const isAuth = () => localStorage.getItem('token');
+
+<Route
+  path="/mine"
+  render={(props) => {
+    // 把组件<Login/>实例化使用，相当于new，组件内部是没有props对象的，在回调参数内把props手动传递下去，组件才会含有history属性
+    // 如果不在回调参数内把props手动传递下去，React提供了一个高阶组件给任何组件使用，withRouter让被包裹的组件含有history属性
+    return isAuth() ? <Mine /> : <Redirect to="/login" {...props} />;
+  }}
+/>;
+```
+
+### 6.withRouter 高阶组件 [high-order component]
+
+### Route 的 component 属性使用的组件是把组件当成 Route 的孩子，也就是把 component 属性放在 Route 的 jsx 内部了，component 组件内部自然会有父组件的 history 属性。但是如果 component 组件内部还有自己封装的子组件，这个子组件如果没有手动传递 props 属性给它，它接收到的 props 是{}，所以如果子组件想要拿到 location、history 等属性，可以把 props 当属性传给子组件。也可以在子组件内使用 withRouter
+
+```jsx
+function Mine(props) {
+  console.log(props); // props内就包含了withRouter给的location，history等属性
+  return <div className="mineRoot">mine</div>;
+}
+export default withRouter(Mine);
+```
+
+## 八、反向代理
+
+### 在开发环境中，如果请求后端的接口，后端的 ip 跟自己的 ip 不一样，这样子请求接口就会发生跨域。跨域是浏览器的同源策略决定的，不存在于服务器之间。生产环境不存在跨域，因为应用已经部署在服务器上了。
+
+![](./images/5.PNG)
+
+### 解决跨域的方法有：
+
+### 1. jsonp：需要后端更改接口， 复习一下
+
+### 2. cors：后端在接口的返回头加上 Access-Control-Allow-Origin: \*
+
+![](./images/4.PNG)
+
+### 3. 反向代理：在 react 项目开发中，当请求后端接口时，做一个反向代理，先向自己的本地服务器 localhost 请求，localhost 这台服务器再向后端这台真正的服务器请求数据拿回来给客户端用，所以就不存在跨域了。
+
+### react 中反向代理是利用 node 的中间件：[http-proxy-middleware](https://create-react-app.dev/docs/proxying-api-requests-in-development)，src 下新建 setupProxy.js：
+
+```js
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+module.exports = function (app) {
+  app.use(
+    '/ajax',
+    createProxyMiddleware({
+      target: 'https://i.maoyan.com',
+      changeOrigin: true,
+    })
+  );
+};
+```
+
+```js
+// 请求时朝着ajax开始的路径发
+useEffect(() => {
+  axios({
+    url:
+      '/ajax/comingList?ci=20&limit=10&movieIds=&token=&optimus_uuid=0B1360C06EC711ED9202F7A3C5B5021BF412D2EFD8344980AA9C42B64F7154DA&optimus_risk_level=71&optimus_code=10',
+  }).then((res) => {
+    console.log(res.data);
+  });
+}, []);
+```
+
+## 九、CSS 模块化
+
+### React 是单页面应用，每个页面的样式都是在 head 的 style 下，所以在一个组件内给一个 div 起一个类名，在别的组件内给一个 div 起同样的类名，会应用到全局的样式，样式也会起到覆盖。
+
+![](./images/6.PNG)
+
+### css 模块化只对类名和 id 名起效，编译时会在类名或者 id 名后面加随机数，保证是唯一的不会与应用内其他的同名。
+
+![](./images/7.PNG)
+
+### 使用方法：css 命名为 xx.module.css，页面中引入 xx.module.css 即可
+
+![](./images/8.PNG)
+
+```js
+import styles from './index.module.css';
+<div className={styles.content}></div>;
+```
+
+### 全局样式
+
+```css
+:global(.qiuli) {
+  color: orange;
+}
 ```

@@ -1,5 +1,5 @@
 import React from 'react';
-import './index.css';
+import styles from './index.module.css';
 import { useHistory } from 'react-router-dom';
 
 export default function FilmItem(props) {
@@ -9,7 +9,7 @@ export default function FilmItem(props) {
 
   const handleClick = () => {
     // 动态路由
-    // history.push(`/filmdetail/${item.filmId}`);
+    history.push(`/filmdetail/${item.filmId}`);
     // query传参
     // history.push({
     //   pathname: '/filmdetail',
@@ -18,39 +18,39 @@ export default function FilmItem(props) {
     //   },
     // });
     // state传参
-    history.push({
-      pathname: '/filmdetail',
-      state: {
-        id: item.filmId,
-      },
-    });
+    // history.push({
+    //   pathname: '/filmdetail',
+    //   state: {
+    //     id: item.filmId,
+    //   },
+    // });
   };
 
   return (
-    <div key={item.filmId} className="filmItem" onClick={handleClick}>
+    <div key={item.filmId} className={styles.filmItem} onClick={handleClick}>
       <div>
         <img src={item.poster} alt={item.name} />
       </div>
-      <div className="content">
+      <div className={styles.content}>
         <p>
-          <span className="name">{item.name}</span>
-          <span className="filmType">{item.filmType.name}</span>
+          <span className={styles.name}>{item.name}</span>
+          <span className={styles.filmType}>{item.filmType.name}</span>
         </p>
 
         {item.grade && (
-          <p className="other">
-            观众评分<span className="grade">{item.grade}</span>
+          <p className={styles.other}>
+            观众评分<span className={styles.grade}>{item.grade}</span>
           </p>
         )}
 
-        <p className="other actors">
+        <p className={`${styles.other} ${styles.actors}`}>
           主演：{item.actors.map((ele) => ele.name).join(' ')}
         </p>
-        <p className="other">
+        <p className={styles.other}>
           {item.nation} | {item.runtime}分钟
         </p>
       </div>
-      {item.isPresale && <div className="buy">购票</div>}
+      {item.isPresale && <div className={styles.buy}>购票</div>}
     </div>
   );
 }

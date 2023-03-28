@@ -11,7 +11,8 @@ import MineActivePng from '../../assets/mine_active.png';
 import { useHistory, useLocation } from 'react-router-dom';
 import { hasTabMenu } from '../../const';
 
-export default function TabBar() {
+export default function TabBar(props) {
+  // console.log(props, 'props');
   const [tablist] = useState([
     {
       id: 0,
@@ -63,23 +64,25 @@ export default function TabBar() {
   }, [pathname]);
 
   return (
-    <div className="tablist">
-      {tablist.map((item, index) => (
-        <div
-          key={item.id}
-          onClick={() => {
-            history.push(item.to);
-            setactive(index);
-          }}
-          className={index === active ? 'active' : ''}
-        >
-          <img
-            src={index === active ? item.asset_active : item.asset}
-            alt={item.text}
-          />
-          <p>{item.text}</p>
-        </div>
-      ))}
-    </div>
+    hasTabMenu.includes(pathname) && (
+      <div className="tablist">
+        {tablist.map((item, index) => (
+          <div
+            key={item.id}
+            onClick={() => {
+              history.push(item.to);
+              setactive(index);
+            }}
+            className={index === active ? 'active' : ''}
+          >
+            <img
+              src={index === active ? item.asset_active : item.asset}
+              alt={item.text}
+            />
+            <p>{item.text}</p>
+          </div>
+        ))}
+      </div>
+    )
   );
 }

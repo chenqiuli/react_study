@@ -3,21 +3,15 @@ import IndexRouter from './router/IndexRouter';
 import TabBar from './components/TabBar';
 import './css/myapp.css';
 import './css/common.css';
-import { hasTabMenu } from './const';
+// 全局引入antd样式
+import 'antd/dist/reset.css';
 
-export default function MyApp() {
-  const hash = window.location.hash;
-  // console.log(
-  //   hash.slice(1),
-  //   hasTabMenu.filter((ele) => hash.slice(1) === ele).length
-  // );
+export default function MyApp(props) {
   return (
     <div className="myapp">
       <IndexRouter>
         {/* 插槽的写法 */}
-        {hasTabMenu.filter((ele) => hash.slice(1) === ele).length ? (
-          <TabBar />
-        ) : null}
+        <TabBar />
       </IndexRouter>
     </div>
   );

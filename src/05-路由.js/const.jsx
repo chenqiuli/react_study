@@ -4,6 +4,6 @@ export const hasTabMenu = [
   '/cinemas',
   '/mine',
   '/consult',
-  '', // 匹配"/"
+  '/',
   '/films',
 ];
