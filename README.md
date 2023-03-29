@@ -1617,7 +1617,9 @@ export default withRouter(Mine);
 
 ### 解决跨域的方法有：
 
-### 1. jsonp：需要后端更改接口， 复习一下
+### 1. jsonp：需要后端更改接口
+
+补充一下。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
 
 ### 2. cors：后端在接口的返回头加上 Access-Control-Allow-Origin: \*
 
@@ -1625,7 +1627,7 @@ export default withRouter(Mine);
 
 ### 3. 反向代理：在 react 项目开发中，当请求后端接口时，做一个反向代理，先向自己的本地服务器 localhost 请求，localhost 这台服务器再向后端这台真正的服务器请求数据拿回来给客户端用，所以就不存在跨域了。
 
-### react 中反向代理是利用 node 的中间件：[http-proxy-middleware](https://create-react-app.dev/docs/proxying-api-requests-in-development)，src 下新建 setupProxy.js：
+### react 中反向代理是利用 node 的中间件：[http-proxy-middleware](https://create-react-app.dev/docs/proxying-api-requests-in-development)，src 下新建 setupProxy.js，然后重启服务：
 
 ```js
 const { createProxyMiddleware } = require('http-proxy-middleware');
