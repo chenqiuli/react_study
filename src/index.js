@@ -3,7 +3,10 @@
 import React from 'react';
 // import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
-import App from "./06-Redux/MyApp";
+import App from "./07-react-redux/MyApp";
+import { Provider } from 'react-redux';
+import { store, persistor } from './07-react-redux/redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
 
 
 
@@ -11,7 +14,14 @@ const container = document.getElementById("root");
 const root = createRoot(container);
 
 // ReactDOM.render(<App />, document.getElementById("root"));
-root.render(<App />);
+root.render(
+  // Provider 把store通过context上下文传递给App组件，是所有组件都能拿到store的值
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <App />
+    </PersistGate>
+  </Provider>
+);
 
 // ReactDOM.render(
 //   <div id="aaa" style={{ color: 'red' }}>

@@ -1684,7 +1684,9 @@ import styles from './index.module.css';
 
 ## 十、Redux
 
-##### npm i redux -S
+```bash
+npm i redux -S
+```
 
 ### 1. redux 工作流
 
@@ -1830,4 +1832,190 @@ function getCinemaList(cityId) {
 export default getCinemaList;
 ```
 
-### 4. redux 的数据是存在内存中的，每次一刷新浏览器内存就清空了，数据消失了，redux 持久化？
+## 十一、react-redux
+
+```bash
+npm i react-redux -S
+```
+
+#### 借助在 redux 之上，reducers，state 没有改变，只是提供了 Provider 和 connect 方法
+
+### 1.Provider：让容器组件拿到 store 的 state，利用 context 上下文（生产者与消费者模式）
+
+```js
+root.render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+```
+
+### 2.connect：高阶组件，HOC。connect 可以让低级组件不需要再去订阅、取消订阅、手动获取 store 的值，可以定制化属性映射到低级组件的 props 上。
+
+```js
+import styles from '../css/search.module.css';
+import React, { useState, useEffect, useMemo } from 'react';
+import { CinemaItem } from './Cinemas';
+import getCinemaList from '../redux/actionCreators/getCinemaList';
+import { connect } from 'react-redux';
+
+function Search(props) {
+  // 让请求在redux中发，保证view层只处理ui层，如果先进的是search页面
+  useEffect(() => {
+    if (!props.cinemaList.length) {
+      props.getCinemaList(props.cityId);
+    } else {
+      console.log('从 store 缓存中读取');
+    }
+  }, []);
+
+  return (
+    <div className={styles.root}>
+      {!myValue.length && (
+        <div className={styles.nearArea}>
+          <p>离你最近</p>
+          <ul>
+            {props.cinemaList.slice(0, 5).map((item) => {
+              return <li key={item.cinemaId}>{item.name}</li>;
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 传给属性
+const mapStateToProps = (state) => {
+  console.log(state, 'reducer的state');
+  return {
+    cinemaList: state.CinemaReducer.cinemaList,
+    cityId: state.cityReducer.cityId,
+  };
+};
+
+// 回调方法
+const mapDispatchToProps = {
+  getCinemaList,
+  hideTabbar() {
+    return {
+      type: 'tabbar_hide',
+    };
+  },
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Search);
+```
+
+### 3.connect 源码实现
+
+```js
+import React from 'react';
+
+function NotFound(props) {
+  console.log(props, 'props');
+  return <div>404 not found</div>;
+}
+
+/**
+ *
+ * 实现connect HOC源码
+ * HOC：接收一个低级组件，返回一个具有某种功能的高级组件
+ * HOC能做到：
+ * 1.劫持渲染：比如让低级组件整个组件的字体变成红色等...
+ * 2.代码复用
+ * 3.增删改props
+ */
+const qiuConnect = (cb, obj) => {
+  const state = cb();
+  return (MyComponent) => {
+    return (props) => {
+      return (
+        <div style={{ color: 'red' }}>
+          <MyComponent {...state} {...props} {...obj} />
+        </div>
+      );
+    };
+  };
+};
+
+export default qiuConnect(
+  () => {
+    return {
+      a: 1,
+      b: 2,
+    };
+  },
+  {
+    aa() {
+      return 'aa';
+    },
+    bb() {
+      return 'bb';
+    },
+  }
+)(NotFound);
+```
+
+### 4. redux 持久化
+
+```bash
+npm i redux-persist -S
+```
+
+#### redux 的数据是存在内存中的，每次一刷新浏览器内存就清空了，借助 redux-persist 实现数据持久化
+
+```js
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
+// 将处理不同业务的reducer拆分出来
+import tabbarReducer from './reducers/tabbarReducer';
+import cityReducer from './reducers/cityReducer';
+import CinemaReducer from './reducers/cinemaReducer';
+import ReduxThunk from 'redux-thunk';
+import ReduxPromise from 'redux-promise';
+
+const reducer = combineReducers({
+  // Define a top-level state field named `todos`, handled by `todosReducer`
+  tabbarReducer,
+  cityReducer,
+  CinemaReducer,
+});
+
+// redux持久化
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['CinemaReducer'], // 只有白名单的才会持久化
+};
+
+const persistedReducer = persistReducer(persistConfig, reducer);
+
+// 配置redux-devtools
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+/**
+ * 在redux中处理异步需要redux-thunk（返回函数）或redux-promise（返回Promise对象）中间件加持
+ * 同步即返回纯js对象
+ */
+const store = createStore(
+  persistedReducer,
+  composeEnhancers(applyMiddleware(ReduxThunk, ReduxPromise))
+);
+let persistor = persistStore(store);
+
+export { store, persistor };
+```
+
+```js
+root.render(
+  // Provider 把store通过context上下文传递给App组件，是所有组件都能拿到store的值
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <App />
+    </PersistGate>
+  </Provider>
+);
+```
+
+![](./images/14.PNG)
