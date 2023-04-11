@@ -3,7 +3,7 @@
 import React from 'react';
 // import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
-import App from "./05-路由.js/MyApp";
+import App from "./06-Redux/MyApp";
 
 
 

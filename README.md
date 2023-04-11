@@ -1681,3 +1681,153 @@ import styles from './index.module.css';
   color: orange;
 }
 ```
+
+## 十、Redux
+
+##### npm i redux -S
+
+### 1. redux 工作流
+
+![](./images/10.png)
+
+#### 一个组件如果要更新状态，这个状态是跟其他组件共享的。在组件内先 dispatch 一个 action 对象，触发对应的 actionCreator，把 action 对象送到 store 里面，store 不能直接更新状态，需要通过 reducer 来更新状态，reducer 接收老的状态和 action，然后基于 action 的 type 判断返回新的状态，新的状态一更新，就通知订阅者的组件来更新 state。
+
+### 2. redux 的三大原则：
+
+#### a. state 是以单一对象存储的
+
+#### b. state 是只读的，每次修改要深复制一份
+
+#### c. 使用纯函数 reducer 执行 state 更新
+
+#### 纯函数定义：1.对外界没有副作用（修改对象时不对原对象产生影响）2.同样的输入得到同样的输出（不管调用多少遍结果都一样）
+
+```js
+// 纯函数
+const obj = {
+  name: 'qiu',
+};
+function test(obj) {
+  const newObj = { ...obj };
+  newObj.name === 'xiaoming';
+  return newObj;
+}
+test(obj);
+```
+
+<hr />
+
+### 3. redux 的重要 api：
+
+#### a. subscribe：通知订阅者 store 更新了
+
+#### b. dispatch：提供改变 reducer 的函数
+
+#### c. getState：获取 store 的状态
+
+#### d. 实现 createStore 源码：
+
+```js
+const createQStore = (reducer, initialstate) => {
+  var list = [];
+  initialstate = reducer();
+
+  function subscribe(callback) {
+    list.push(callback);
+  }
+  function dispatch(action) {
+    initialstate = reducer(initialstate, action);
+    for (var i in list) {
+      list[i] && list[i]();
+    }
+  }
+  function getState() {
+    return initialstate;
+  }
+  return {
+    subscribe,
+    dispatch,
+    getState,
+  };
+};
+```
+
+### 4.redux 拆分合并
+
+```js
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
+// 将处理不同业务的reducer拆分出来
+import tabbarReducer from './reducers/tabbarReducer';
+import cityReducer from './reducers/cityReducer';
+import CinemaReducer from './reducers/cinemaReducer';
+// npm i redux-thunk -S
+import ReduxThunk from 'redux-thunk';
+// npm i redux-promise -S
+import ReduxPromise from 'redux-promise';
+
+const reducer = combineReducers({
+  // Define a top-level state field named `todos`, handled by `todosReducer`
+  tabbarReducer,
+  cityReducer,
+  CinemaReducer,
+});
+
+// applyMiddleware应用中间件
+const store = createStore(reducer, applyMiddleware(ReduxThunk, ReduxPromise));
+
+export default store;
+```
+
+### 5.applyMiddleware 应用中间件：处理异步
+
+```js
+import axios from 'axios';
+
+/**
+ * redux-thunk中间件风格：
+ * actionCreator内如果是同步返回一个普通js对象，{type:"xx",payload:xx}
+ * 如果是异步返回一个函数，需要redux-thunk这个外挂支持
+ */
+function getCinemaList(cityId) {
+  return (dispatch) => {
+    axios({
+      url: `https://m.maizuo.com/gateway?cityId=${cityId}&ticketFlag=1&k=4558896`,
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"110100"}',
+        'X-Host': 'mall.film-ticket.cinema.list',
+      },
+    }).then((res) => {
+      // console.log(res.data.data.cinemas);
+      dispatch({
+        type: 'fetch_cinemaList',
+        payload: res.data.data.cinemas,
+      });
+    });
+  };
+}
+
+/**
+ * redux-promise中间件风格：
+ * Promise三种状态：fulfilled，pending，reject
+ */
+// function getCinemaList (cityId) {
+//   return axios({
+//     url: `https://m.maizuo.com/gateway?cityId=${cityId}&ticketFlag=1&k=4558896`,
+//     headers: {
+//       'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"110100"}',
+//       'X-Host': 'mall.film-ticket.cinema.list'
+//     }
+//   }).then((res) => {
+//     // console.log(res.data.data.cinemas);
+//     return {
+//       type: "fetch_cinemaList",
+//       payload: res.data.data.cinemas
+//     };
+//   });
+// }
+
+export default getCinemaList;
+```
+
+### 4. redux 的数据是存在内存中的，每次一刷新浏览器内存就清空了，数据消失了，redux 持久化？
