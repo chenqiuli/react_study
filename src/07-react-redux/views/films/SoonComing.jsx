@@ -1,11 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import useFetchFilmList from '../../hooks/useFetchFilmList';
+import React, { useState, /*useEffect,*/ useRef } from 'react';
+import fetchFilmList from './fetchFilmList';
 import FilmItem from '../../components/FilmItem';
-import axios from 'axios';
+import { List, InfiniteScroll } from 'antd-mobile';
+// import axios from 'axios';
 
 export default function SoonComing() {
-  const { filmlist } = useFetchFilmList({ type: 2, k: '2924316' });
+  const [list, setlist] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
 
+  const num = useRef(0); // 作为pageNum变量保存
+
+  async function loadMore() {
+    // console.log('到底了');
+    setHasMore(false);
+    num.current++;
+    fetchFilmList({
+      type: 2,
+      k: '2924316',
+      pageNum: num.current,
+    }).then((res) => {
+      setlist([...list, ...res]);
+      setHasMore(res.length);
+    });
+  }
+
+  /**
+   * 
+  // 反向代理，请求猫眼数据，猫眼网站是不给人跨域的
   const [maoyanList, setmaoyanList] = useState([]);
 
   useEffect(() => {
@@ -19,12 +40,15 @@ export default function SoonComing() {
   }, []);
 
   console.log(maoyanList, 'maoyanList');
-
+  */
   return (
-    <div>
-      {filmlist.map((item) => (
-        <FilmItem key={item.filmId} item={item} />
-      ))}
-    </div>
+    <>
+      <List>
+        {list.map((item) => (
+          <FilmItem key={item.filmId} item={item} />
+        ))}
+      </List>
+      <InfiniteScroll loadMore={loadMore} hasMore={hasMore} />
+    </>
   );
 }

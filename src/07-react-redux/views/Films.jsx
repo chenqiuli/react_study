@@ -30,7 +30,7 @@ export default function Films(props) {
     window.addEventListener('scroll', () => {
       const scrollTop = document.documentElement.scrollTop;
       // console.log('scroll', scrollTop);
-      if (scrollTop >= 200) {
+      if (scrollTop >= 100) {
         setfixed(true);
         setshowTitle(true);
       } else {

@@ -52,7 +52,7 @@
 }
 
 .actors {
-  width: 95%;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -65,4 +65,12 @@
   color: #ff5f16;
   line-height: 25px;
   text-align: center;
+}
+
+:global(.adm-list-item-content) {
+  width: 100% !important;
+}
+
+:global(.adm-list-item-content-main) {
+  width: calc(100% - 150px) !important;
 }

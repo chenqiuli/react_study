@@ -5,13 +5,15 @@
 
 .header_fix {
   position: fixed;
-  top: 0px;
+  top: 0;
   left: 0;
   width: 100%;
   background-color: #fff;
+  z-index: 999;
 }
 
 .tabList {
+  margin-bottom: 3px !important;
   height: 50px;
   line-height: 50px;
   display: flex;
