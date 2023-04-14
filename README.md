@@ -2019,3 +2019,163 @@ root.render(
 ```
 
 ![](./images/14.PNG)
+
+## 十二、UI 组件库
+
+### 1.antd
+
+### 2.antd_mobile
+
+## 十三、immutable
+
+### 1.在 react 中，做 setState 更新的时候要对原有的对象进行深复制，不能影响老的 state；在 redux 中，也要对 prevState 老的状态深复制一份，然后再修改，修改完了再返回一个新状态。
+
+```bash
+npm i immutable -S
+```
+
+### 2.浅拷贝与深拷贝
+
+```js
+// 1.引用复制（浅复制）
+const aObj = {
+  name: 'aaaa',
+};
+const aObj2 = aObj;
+aObj2.name = 'bbb';
+console.log('aObj', aObj, aObj2); // 影响了原对象：都被修改为bbb了
+
+// 2.浅意义的深复制（只对普通数据类型深复制，对引用数据类型浅复制）
+const bObj = {
+  name: 'aaa',
+  arr: [1, 2, 3],
+  obj: {
+    age: 18,
+    nation: '中国',
+  },
+};
+const bObj2 = { ...bObj };
+bObj2.name = 'bbb'; // 没有影响了原对象
+bObj2.arr.splice(1, 1); // 影响了原对象：arr是引用数据类型
+bObj2.obj.nation = '美国'; // 影响了原对象：obj是引用数据类型
+console.log('bObj', bObj, bObj2);
+
+// 3.JSON.parse(JSON.stringify)（对undefined失效，复制不了值为undefined的键）
+const cObj = {
+  name: 'aaa',
+  arr: [1, 2, 3],
+  text: undefined,
+};
+const cObj2 = JSON.parse(JSON.stringify(cObj));
+cObj2.name = 'bbb'; // 没有影响了原对象
+cObj2.arr.splice(1, 1); // 没有影响了原对象
+console.log('cObj2', cObj, cObj2);
+
+// 深拷贝：递归一层一层   （性能太差，消耗性能）
+
+// immutable：使用旧数据创建新数据时，能够保证旧数据可用且不变
+```
+
+### 3.immutable 对象修改的原则：在 immutable 对象上修改，不会影响原对象。immutable 对象修改的时候，如果其他属性跟原有对象一致，会复用原有对象属性。
+
+### 4.immutable 库的使用
+
+#### （1）Map 的使用
+
+| 属性层级 | 设置属性                              | 获取属性                       | 普通 js 对象 -> immutable 对象 | immutable 对象 -> 普通 js 对象 | 修改属性内为数组的数据                               |
+| -------- | ------------------------------------- | ------------------------------ | ------------------------------ | ------------------------------ | ---------------------------------------------------- |
+| 一层     | set("name","xxx")                     | get("name")                    |                                |                                |                                                      |
+| 一层     | setIn(["locaiton","province"],"中国") | getIn(["locaiton","province"]) |                                |                                |                                                      |
+| 不论层级 |                                       |                                | fromJS()                       | toJS()                         | updateIn(["favor"], value => value.splice(index, 1)) |
+
+```js
+import React, { useState } from 'react';
+import { fromJS } from 'immutable';
+
+/**
+ * fromJS：把immutable对象转为普通js对象
+ * setIn：修改多层级键的值 setIn([],xx)
+ * getIn：获取多层级键的值 getIn([])
+ * updateIn：修改List数组的键 updateIn([],value => xxx)
+ */
+
+export default function App() {
+  const obj = {
+    name: 'aaa',
+    location: {
+      province: '广东省',
+      city: '广州市',
+    },
+    favor: ['睡觉', '玩游戏', '吃美食'],
+  };
+
+  const [data, setdata] = useState(fromJS(obj));
+
+  // console.log(data.toJS());
+
+  return (
+    <div>
+      <button
+        onClick={() => {
+          // setdata(data.set("name", "bbb"));
+          setdata(data.setIn(['name'], 'bbb'));
+        }}
+      >
+        修改姓名
+      </button>
+      <p>姓名：{data.get('name')}</p>
+      <button
+        onClick={() => {
+          setdata(
+            data
+              .setIn(['location', 'province'], '浙江省')
+              .setIn(['location', 'city'], '嘉兴市')
+          );
+        }}
+      >
+        修改籍贯
+      </button>
+      <p>
+        籍贯：{data.getIn(['location', 'province'])}-
+        {data.getIn(['location', 'city'])}
+      </p>
+      <div>
+        {data.getIn(['favor']).map((item, index) => (
+          <div>
+            <span key={item}>{item}</span>
+            <button
+              onClick={() => {
+                setdata(
+                  data.updateIn(['favor'], (value) => value.splice(index, 1))
+                );
+              }}
+            >
+              删除
+            </button>
+            <button
+              onClick={() => {
+                setdata(data.setIn(['favor', index], '和男朋友去玩'));
+              }}
+            >
+              修改
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+#### （2）List 的使用：跟数组的方法一模一样
+
+```js
+import { List } from 'immutable';
+
+/* 对数组进行任何操作，不会改变原数组 */
+const arr1 = List([1, 2, 3]);
+const arr2 = arr1.push(4);
+const arr3 = arr2.unshift(0);
+const arr4 = arr3.concat([5, 6, 7]);
+console.log(arr1.toJS(), arr2.toJS(), arr3.toJS(), arr4.toJS());
+```

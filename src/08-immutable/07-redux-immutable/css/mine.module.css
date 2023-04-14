@@ -1,0 +1,15 @@
+.mine ul li {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  height: 49px;
+  line-height: 49px;
+  padding: 0 15px;
+  border: 1px solid #ededed;
+}
+
+.mine ul li img {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
