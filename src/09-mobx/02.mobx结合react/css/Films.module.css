@@ -1,0 +1,31 @@
+.films {
+  width: 100%;
+  height: calc(100% - 50px);
+}
+
+.header_fix {
+  position: fixed;
+  top: 0px;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+}
+
+.title {
+  text-align: center;
+  height: 44px;
+  line-height: 44px;
+}
+
+.tabList {
+  height: 50px;
+  line-height: 50px;
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+
+.active {
+  color: #ff5f16;
+  border-bottom: 1px solid #ff5f16;
+}

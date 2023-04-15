@@ -2179,3 +2179,170 @@ const arr3 = arr2.unshift(0);
 const arr4 = arr3.concat([5, 6, 7]);
 console.log(arr1.toJS(), arr2.toJS(), arr3.toJS(), arr4.toJS());
 ```
+
+## 十四、[mobx](https://cn.mobx.js.org/)
+
+### 1.原理：Mobx 利用 getter 和 setter 来收集组件的数据依赖关系，从而在数据发生变化的时候精确知道哪些组件需要重绘，在界面的规模变大的时候，往往会有很多细粒度更新。
+
+### 2.mobx 与 redux 区别
+
+#### a.对一份数据直接进行修改操作，不需要始终返回一个新的数据
+
+#### b.Redux 默认以 JavaScript 原生对象形式存储数据，而 Mobx 使用可观察对象
+
+#### c.并非单一 store,可以多 store
+
+#### d.Mobx 写法上更偏向于 OOP
+
+### 3.mobx-react 的使用
+
+```bash
+npm i mobx@5 -S
+npm i mobx-react@5 -S
+```
+
+#### Provider 包裹根组件，传递 store 的名称给 inject 使用，让 store 变成组件的 porps
+
+```js
+import { Provider } from 'mobx-react';
+root.render(
+  // Provider 把store通过context上下文传递给App组件，是所有组件都能拿到store的值\
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+```
+
+#### 组件中使用 store，@observer 让组件变成可观察组件
+
+```js
+import React, { Component } from 'react';
+import IndexRouter from './router/IndexRouter';
+import TabBar from './components/TabBar';
+import { inject, observer } from 'mobx-react';
+
+/* 类组件中监听store状态 */
+@inject('store') // 注入store
+@observer // 变成观察组件
+class MyApp extends Component {
+  componentDidMount = () => {
+    console.log(this.props.store.isShowTabbar);
+  };
+
+  render() {
+    return (
+      <div className="myapp">
+        <IndexRouter>
+          {/* 插槽的写法 */}
+          {this.props.store.isShowTabbar && <TabBar />}
+        </IndexRouter>
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+#### store 编写
+
+```js
+import { observable, action, runInAction } from 'mobx';
+import axios from 'axios';
+
+class Store {
+  @observable isShowTabbar = true; // 变成可观察数据
+  @observable cinemaList = [];
+
+  @action async fetchCinemaList() {
+    const list = await axios({
+      url: `https://m.maizuo.com/gateway?cityId=440100&ticketFlag=1&k=4558896`,
+      headers: {
+        'X-Client-Info':
+          '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"110100"}',
+        'X-Host': 'mall.film-ticket.cinema.list',
+      },
+    }).then((res) => {
+      // console.log(res.data.data.cinemas);
+      return res.data.data.cinemas;
+    });
+    // 处理异步
+    runInAction(() => {
+      this.cinemaList = list;
+    });
+  }
+
+  @action showTabbar() {
+    this.isShowTabbar = true;
+  }
+
+  @action hideTabbar() {
+    this.isShowTabbar = false;
+  }
+}
+
+const store = new Store();
+
+export default store;
+```
+
+### 4.配置装饰器
+
+```bash
+npm i @babel/core @babel/plugin-proposal-decorators @babel/preset-env
+npm i customize-cra react-app-rewired
+```
+
+#### 创建 .babelrc
+
+```js
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+    "plugins": [
+      [
+        "@babel/plugin-proposal-decorators",
+        {
+          "legacy": true
+        }
+      ]
+    ]
+}
+```
+
+#### 创建 config-overrides.js
+
+```js
+const path = require('path');
+const { override, addDecoratorsLegacy } = require('customize-cra');
+function resolve(dir) {
+  return path.join(__dirname, dir);
+}
+const customize = () => (config, env) => {
+  config.resolve.alias['@'] = resolve('src');
+  if (env === 'production') {
+    config.externals = {
+      react: 'React',
+      'react-dom': 'ReactDOM',
+    };
+  }
+  return config;
+};
+module.exports = override(addDecoratorsLegacy(), customize());
+```
+
+#### 修改 package.json
+
+```json
+"scripts": {
+"start": "react-app-rewired start",
+"build": "react-app-rewired build",
+"test": "react-app-rewired test",
+"eject": "react-app-rewired eject"
+},
+```
+
+#### VScode 配置 setting
+
+![](./images/15.PNG)

@@ -3,9 +3,10 @@
    import React from 'react';
    // import ReactDOM from "react-dom";
    import { createRoot } from "react-dom/client";
-   import App from "./08-immutable/07-redux-immutable/MyApp";  
- 
-   
+   import App from "./09-mobx/02.mobx结合react/MyApp";  
+  import { Provider } from "mobx-react"
+  import store from './09-mobx/02.mobx结合react/mobx/store';
+    
    
 
    const container = document.getElementById("root");
@@ -13,8 +14,10 @@
    
    // ReactDOM.render(<App />, document.getElementById("root"));
    root.render(
-     // Provider 把store通过context上下文传递给App组件，是所有组件都能拿到store的值
-     <App />
+     // Provider 把store通过context上下文传递给App组件，是所有组件都能拿到store的值\
+     <Provider store={store}>
+        <App />
+     </Provider>
    );
    
    // ReactDOM.render(
