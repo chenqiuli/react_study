@@ -6,6 +6,7 @@ import './css/common.css';
 // 全局引入antd样式
 import 'antd/dist/reset.css';
 import { connect } from 'react-redux';
+import './utils/request';
 
 function MyApp(props) {
   useEffect(() => {

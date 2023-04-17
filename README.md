@@ -1,4 +1,4 @@
-# React 全家桶
+# [React](https://reactjs.org/) 全家桶
 
 ## 一、React 介绍
 
@@ -1486,9 +1486,13 @@ const FilmDetail = () => {
 
 <hr/>
 
-## 七、路由
+## 七、react-router
 
-### 在 React 里，万物皆组件，路由也是组件
+```bash
+npm i react-router-dom@5 -S
+```
+
+### 在 React 里，万物皆组件，路由也是组件。本次学习的 react-router-dom@5 版本
 
 ### 1. 常见的路由两种模式：BrowserRouter 和 HashRouter，一级路由配置在 Router 下，嵌套路由配置在组件内部
 
@@ -2024,7 +2028,7 @@ root.render(
 
 ### 1.antd
 
-### 2.antd_mobile
+### 2.[antd_mobile](https://mobile.ant.design/)
 
 ## 十三、immutable
 
