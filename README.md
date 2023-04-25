@@ -2352,3 +2352,146 @@ module.exports = override(addDecoratorsLegacy(), customize());
 ![](./images/15.PNG)
 
 ## 十五、[styled-components](https://styled-components.com/docs/basics)
+
+### styled 是一个高阶组件，接收一个低级组件，返回一个带有定制化样式的高级组件
+
+```bash
+npm i styled-components -S
+```
+
+### 1. 基本用法
+
+```js
+import styled from 'styled-components';
+
+// 第一种写法
+const ULStyled = styled.ul({
+  li: {
+    flex: 1,
+    // 不支持hover
+  },
+  display: 'flex',
+  position: 'fixed',
+  bottom: 0,
+  width: '100%',
+  height: '50px',
+  lineHeight: '50px',
+  textAlign: 'center',
+  listStyle: 'none',
+});
+// 第二种写法
+const ULStyled = styled.ul`
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  list-style: none;
+  li {
+    flex: 1;
+    &:hover {
+      background: red;
+    }
+  }
+`;
+
+<ULStyled>
+  {tabs.map((item) => (
+    <li key={item}>{item}</li>
+  ))}
+</ULStyled>;
+```
+
+### 2. 属性传递
+
+```js
+const InputStyled = styled.input({
+  outline: 'none',
+  borderBottom: '1px solid red',
+});
+
+const DivStyled = styled.div`
+  width: 50px;
+  height: 50px;
+  background: ${(props) => props.bg ?? 'yellow'};
+`;
+
+{/* 原生标签属性自动透传 */}
+<InputStyled type="password" placeholder='请输入密码' />
+{/* 自定义组件透传属性，通过props回调接收 */}
+<DivStyled bg="blue"></DivStyled>
+<DivStyled></DivStyled>
+```
+
+### 3. 样式化组件（父子传递，在子组件记得接收 className）
+
+```js
+const ChildStyled = styled(Child)`
+  width: 100px;
+  height: 100px;
+  background: yellow;
+  text-align: center;
+  line-height: 100px;
+`;
+
+export default function App() {
+  return (
+    <div>
+      App
+      <ChildStyled />
+    </div>
+  );
+}
+
+// 子组件记得要设置className接收
+function Child(props) {
+  return <div className={props.className}>Child</div>;
+}
+```
+
+### 4. 复用样式
+
+```js
+const ButtonStyled1 = styled.button({
+  width: '100px',
+  height: '100px',
+  background: 'red',
+});
+
+const ButtonStyled2 = styled(ButtonStyled1)({
+  background: 'yellow',
+});
+
+const ButtonStyled3 = styled(ButtonStyled1)({
+  background: 'blue',
+});
+```
+
+### 5.动画
+
+```js
+import styled, { keyframes } from 'styled-components';
+
+const box = keyframes`
+  from {
+    transform: rotate(0deg) 
+  }
+  to {
+    transform: rotate(360deg)
+  }
+`;
+const DivStyled = styled.div`
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  background: pink;
+  text-align: center;
+  animation: ${box} 1s infinite 0s;
+`;
+
+export default function App() {
+  return <DivStyled>动画</DivStyled>;
+}
+```

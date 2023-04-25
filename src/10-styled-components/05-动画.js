@@ -20,10 +20,6 @@ const DivStyled = styled.div`
 
 export default function App () {
   return (
-    <div>
-      App
-
-      <DivStyled>动画</DivStyled>
-    </div>
+    <DivStyled>动画</DivStyled>
   );
 }

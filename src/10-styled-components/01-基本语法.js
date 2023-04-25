@@ -38,9 +38,6 @@ export default function App () {
   const [tabs] = useState([
     "影院", "电影", "咨询", "我的"
   ]);
-
-
-
   return (
     <div>
       App
