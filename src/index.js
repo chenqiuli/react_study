@@ -2,7 +2,8 @@
    在React16之后不用引入是在执行的时候会自动引入React */
 import React from 'react';
 import { createRoot } from "react-dom/client";
-import App from "./10-styled-components/05-动画";
+// import App from "./10-styled-components/05-动画";
+import App from "./11-redux-saga/MyApp";
 
 const container = document.getElementById("root");
 const root = createRoot(container);

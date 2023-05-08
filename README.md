@@ -1758,7 +1758,7 @@ const createQStore = (reducer, initialstate) => {
 };
 ```
 
-### 4.redux 拆分合并
+### 4.redux 拆分合并：conbineReducers
 
 ```js
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
@@ -1784,7 +1784,7 @@ const store = createStore(reducer, applyMiddleware(ReduxThunk, ReduxPromise));
 export default store;
 ```
 
-### 5.applyMiddleware 应用中间件：处理异步
+### 5.reducer 处理异步请求：应用 applyMiddleware 应用中间件
 
 ```js
 import axios from 'axios';
@@ -1814,24 +1814,25 @@ function getCinemaList(cityId) {
 }
 
 /**
- * redux-promise中间件风格：
+ * redux-promise中间件风格：使用promise写法去处理异步请求
  * Promise三种状态：fulfilled，pending，reject
  */
-// function getCinemaList (cityId) {
-//   return axios({
-//     url: `https://m.maizuo.com/gateway?cityId=${cityId}&ticketFlag=1&k=4558896`,
-//     headers: {
-//       'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"110100"}',
-//       'X-Host': 'mall.film-ticket.cinema.list'
-//     }
-//   }).then((res) => {
-//     // console.log(res.data.data.cinemas);
-//     return {
-//       type: "fetch_cinemaList",
-//       payload: res.data.data.cinemas
-//     };
-//   });
-// }
+function getCinemaList(cityId) {
+  return axios({
+    url: `https://m.maizuo.com/gateway?cityId=${cityId}&ticketFlag=1&k=4558896`,
+    headers: {
+      'X-Client-Info':
+        '{"a":"3000","ch":"1002","v":"5.2.1","e":"16789325361560653676412929","bc":"110100"}',
+      'X-Host': 'mall.film-ticket.cinema.list',
+    },
+  }).then((res) => {
+    // console.log(res.data.data.cinemas);
+    return {
+      type: 'fetch_cinemaList',
+      payload: res.data.data.cinemas,
+    };
+  });
+}
 
 export default getCinemaList;
 ```
@@ -1844,7 +1845,7 @@ npm i react-redux -S
 
 #### 借助在 redux 之上，reducers，state 没有改变，只是提供了 Provider 和 connect 方法
 
-### 1.Provider：让容器组件拿到 store 的 state，利用 context 上下文（生产者与消费者模式）
+### 1.Provider：让容器组件拿到 store 的 state，利用 context 上下文传递下去（生产者与消费者模式）
 
 ```js
 root.render(
@@ -1914,13 +1915,6 @@ export default connect(mapStateToProps, mapDispatchToProps)(Search);
 ### 3.connect 源码实现
 
 ```js
-import React from 'react';
-
-function NotFound(props) {
-  console.log(props, 'props');
-  return <div>404 not found</div>;
-}
-
 /**
  *
  * 实现connect HOC源码
@@ -1942,6 +1936,16 @@ const qiuConnect = (cb, obj) => {
     };
   };
 };
+```
+
+```js
+// 应用自己封装的connect源码
+import React from 'react';
+
+function NotFound(props) {
+  console.log(props, 'props');
+  return <div>404 not found</div>;
+}
 
 export default qiuConnect(
   () => {
@@ -1967,7 +1971,7 @@ export default qiuConnect(
 npm i redux-persist -S
 ```
 
-#### redux 的数据是存在内存中的，每次一刷新浏览器内存就清空了，借助 redux-persist 实现数据持久化
+#### redux 的数据是存在内存中的，每次一刷新浏览器内存就清空了，借助 `redux-persist` 实现数据持久化，本质上也是 localStorage 存储
 
 ```js
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
@@ -2024,13 +2028,128 @@ root.render(
 
 ![](./images/14.PNG)
 
-## 十二、UI 组件库
+## 十二、redux-saga
+
+#### 1.`redux-saga`工作原理： 基于生成器函数和 saga effects，通常用来管理异步操作，会监听某些 Action，并在 Action 被触发时执行异步操作。在异步操作完成后，Saga 可以发起新的 Action 来更新状态，从而触发应用的更新。与 redux-thunk 不同，它使用 Generator 函数来定义 Saga。
+
+#### 2.`generator`函数在执行时可以暂停，后面又可以恢复执行，也称协程函数。使用：\*test() 定义，函数内部使用 yield 表达式来暂停执行函数，通过 next()方法继续执行，同时可以将参数传递给 yield 表达式。
+
+#### 3.react 结合 redux-saga 发起单个异步请求：
+
+![](./images/16.jpg)
+
+```js
+// MyApp.js 页面调用异步请求
+<button
+  onClick={() => {
+    const list = store.getState().list;
+    if (!list.length) {
+      // dispatch如果是异步的，一定要让自己的saga去监管，不能让reducer监管
+      store.dispatch({
+        type: 'get-list',
+      });
+    } else {
+      console.log('缓存读取', list);
+    }
+  }}
+>
+  click
+</button>
+```
+
+```js
+// store.js
+import { applyMiddleware, createStore } from 'redux';
+import reducer from './reducer';
+import createSagaMiddleWare from 'redux-saga';
+import watchSage from './saga';
+
+const sagaMiddleware = createSagaMiddleWare();
+
+const store = createStore(reducer, applyMiddleware(sagaMiddleware));
+
+sagaMiddleware.run(watchSage); // 监听saga任务
+
+export default store;
+```
+
+```js
+// saga.js
+import { take, call, put, fork } from 'redux-saga/effects';
+
+function* watchSage() {
+  while (true) {
+    yield take('get-list'); // 非阻塞地 监听组件发来的action
+    yield fork(getList); // 非阻塞地 fork同步执行异步处理函数
+  }
+}
+
+// 异步处理请求
+function* getList() {
+  // 阻塞地 call函数调用异步请求
+  let res = yield call(getListAction);
+  // 非阻塞地 put函数发出新的action
+  yield put({
+    type: 'change-list',
+    payload: res,
+  });
+}
+
+// 调请求
+function getListAction() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(['111', '222', '333']);
+    }, 2000);
+  });
+}
+
+export default watchSage;
+```
+
+```js
+// reducer.js
+const reducer = (
+  prevState = {
+    list: [],
+  },
+  action
+) => {
+  const newState = { ...prevState };
+  switch (action.type) {
+    case 'change-list':
+      console.log('dispatch');
+      newState.list = action.payload;
+      return newState;
+    default:
+      return prevState;
+  }
+};
+
+export default reducer;
+```
+
+#### 4.react 结合 redux-saga 处理多个异步请求：
+
+```js
+import watchSage1 from './saga/saga1';
+import watchSage2 from './saga/saga2';
+import { all } from 'redux-saga/effects';
+
+function* watchSage() {
+  yield all([watchSage1(), watchSage2()]);
+}
+
+export default watchSage;
+```
+
+## 十三、UI 组件库
 
 ### 1.antd
 
 ### 2.[antd_mobile](https://mobile.ant.design/)
 
-## 十三、immutable
+## 十四、immutable
 
 ### 1.在 react 中，做 setState 更新的时候要对原有的对象进行深复制，不能影响老的 state；在 redux 中，也要对 prevState 老的状态深复制一份，然后再修改，修改完了再返回一个新状态。
 
@@ -2184,7 +2303,7 @@ const arr4 = arr3.concat([5, 6, 7]);
 console.log(arr1.toJS(), arr2.toJS(), arr3.toJS(), arr4.toJS());
 ```
 
-## 十四、[mobx](https://cn.mobx.js.org/)
+## 十五、[mobx](https://cn.mobx.js.org/)
 
 ### 1.原理：Mobx 利用 getter 和 setter 来收集组件的数据依赖关系，从而在数据发生变化的时候精确知道哪些组件需要重绘，在界面的规模变大的时候，往往会有很多细粒度更新。
 
@@ -2351,7 +2470,7 @@ module.exports = override(addDecoratorsLegacy(), customize());
 
 ![](./images/15.PNG)
 
-## 十五、[styled-components](https://styled-components.com/docs/basics)
+## 十六、[styled-components](https://styled-components.com/docs/basics)
 
 ### styled 是一个高阶组件，接收一个低级组件，返回一个带有定制化样式的高级组件
 
