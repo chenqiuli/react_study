@@ -10,16 +10,17 @@ function* watchSage2 () {
 
 // 异步处理请求
 function* getList2 () {
-  // 阻塞地 call函数调用异步请求
-  let res = yield call(getListAction2);
-  // 非阻塞地 put函数发出新的action
+  // 链式调用：像写同步代码去调用异步请求
+  const res1 = yield call(getListAction2_1); // call函数：阻塞地调用异步请求，直到结果返回才会往下走
+  const res2 = yield call(getListAction2_2, res1); // 第二个参数可以传值
+  // put函数: 非阻塞地发出新的action
   yield put({
     type: "change-list2",
-    payload: res
+    payload: res2
   });
 }
 
-function getListAction2 () {
+function getListAction2_1 () {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve(["444", "555", "666"]);
@@ -27,4 +28,13 @@ function getListAction2 () {
   });
 }
 
+function getListAction2_2 (data) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve([...data, "777", "888", "999"]);
+    }, 1000);
+  });
+}
+
 export default watchSage2;
+export { getList2 };

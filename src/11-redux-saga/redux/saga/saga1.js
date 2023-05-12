@@ -28,3 +28,4 @@ function getListAction1 () {
 }
 
 export default watchSage1;
+export { getList1 };

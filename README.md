@@ -1790,9 +1790,9 @@ export default store;
 import axios from 'axios';
 
 /**
- * redux-thunk中间件风格：
- * actionCreator内如果是同步返回一个普通js对象，{type:"xx",payload:xx}
- * 如果是异步返回一个函数，需要redux-thunk这个外挂支持
+ * Action Creator内如果是同步返回一个普通js对象，{type:"xx",payload:xx}
+ * 如果是异步返回一个函数，需要redux-thunk中间件这个外挂支持：
+ * redux-thunk允许Action Creator返回一个thunk函数而不是普通的Action对象。thunk函数有两个参数，dispatch和getState，可以在内部执行异步代码，也可以访问store中的状态
  */
 function getCinemaList(cityId) {
   return (dispatch) => {
@@ -1814,8 +1814,9 @@ function getCinemaList(cityId) {
 }
 
 /**
- * redux-promise中间件风格：使用promise写法去处理异步请求
+ * redux-promise中间件风格：
  * Promise三种状态：fulfilled，pending，reject
+ * redux-promise允许Action Creator返回一个Promise对象，把Promise的结果作为payload发送给Reducer
  */
 function getCinemaList(cityId) {
   return axios({
@@ -2030,9 +2031,11 @@ root.render(
 
 ## 十二、redux-saga
 
-#### 1.`redux-saga`工作原理： 基于生成器函数和 saga effects，通常用来管理异步操作，会监听某些 Action，并在 Action 被触发时执行异步操作。在异步操作完成后，Saga 可以发起新的 Action 来更新状态，从而触发应用的更新。与 redux-thunk 不同，它使用 Generator 函数来定义 Saga。
+#### 1. `redux-saga`是一个管理 Redux 应用中异步操作的中间件， 基于 ES6 的 Generator 函数和 Effect 对象来实现非阻塞异步性代码。
 
-#### 2.`generator`函数在执行时可以暂停，后面又可以恢复执行，也称协程函数。使用：\*test() 定义，函数内部使用 yield 表达式来暂停执行函数，通过 next()方法继续执行，同时可以将参数传递给 yield 表达式。
+#### 2. 工作原理：当一个 Redux Action 被触发时，sagaMiddleware 会拦截并监听该 Action，并执行与该 Action 相关的 saga，saga 通过 call 调用异步函数，再通过 put 发出新的 Action，通知 Redux Store 更新状态。
+
+#### 3. `generator`函数在执行时可以暂停，后面又可以恢复执行，也称协程函数。使用：\*test() 定义，函数内部使用 yield 表达式来暂停执行函数，通过 next()方法继续执行，同时可以将参数传递给 yield 表达式。
 
 #### 3.react 结合 redux-saga 发起单个异步请求：
 
@@ -2075,28 +2078,26 @@ export default store;
 
 ```js
 // saga.js
-import { take, call, put, fork } from 'redux-saga/effects';
+import { takeEvery, put, fork } from 'redux-saga/effects';
 
-function* watchSage() {
-  while (true) {
-    yield take('get-list'); // 非阻塞地 监听组件发来的action
-    yield fork(getList); // 非阻塞地 fork同步执行异步处理函数
-  }
+function* watchSaga() {
+  yield takeEvery('get-list1', getList1);
+  // yield takeEvery('get-list2', getList2); // 如果是监听多个的话
 }
 
 // 异步处理请求
-function* getList() {
+function* getList1() {
   // 阻塞地 call函数调用异步请求
-  let res = yield call(getListAction);
+  let res = yield call(getListAction1);
   // 非阻塞地 put函数发出新的action
   yield put({
-    type: 'change-list',
+    type: 'change-list1',
     payload: res,
   });
 }
 
 // 调请求
-function getListAction() {
+function getListAction1() {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve(['111', '222', '333']);
@@ -2117,8 +2118,7 @@ const reducer = (
 ) => {
   const newState = { ...prevState };
   switch (action.type) {
-    case 'change-list':
-      console.log('dispatch');
+    case 'change-list1':
       newState.list = action.payload;
       return newState;
     default:
@@ -2127,20 +2127,6 @@ const reducer = (
 };
 
 export default reducer;
-```
-
-#### 4.react 结合 redux-saga 处理多个异步请求：
-
-```js
-import watchSage1 from './saga/saga1';
-import watchSage2 from './saga/saga2';
-import { all } from 'redux-saga/effects';
-
-function* watchSage() {
-  yield all([watchSage1(), watchSage2()]);
-}
-
-export default watchSage;
 ```
 
 ## 十三、UI 组件库
