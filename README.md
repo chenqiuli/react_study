@@ -2600,3 +2600,186 @@ export default function App() {
   return <DivStyled>动画</DivStyled>;
 }
 ```
+
+## 十七：react 补充
+
+### 1. portal： React 的 Portal 是一种特殊的渲染方式，允许将子组件渲染到父组件 DOM 层次结构以外的位置。
+
+```js
+// App.js
+import React, { Component } from 'react';
+import styles from './App.module.css';
+import PortalDialog from './components/PortalDialog';
+
+class App extends Component {
+  state = {
+    isShow: false,
+  };
+
+  render() {
+    return (
+      <div className={styles.root}>
+        <div className={styles.left}></div>
+        <div className={styles.right}>
+          <button
+            onClick={() => {
+              this.setState({
+                isShow: true,
+              });
+            }}
+          >
+            click
+          </button>
+          {this.state.isShow && (
+            <PortalDialog
+              close={() => {
+                this.setState({
+                  isShow: false,
+                });
+              }}
+            >
+              <div>111</div>
+              <div>222</div>
+              <div>333</div>
+            </PortalDialog>
+          )}
+        </div>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+```css
+/* App.css */
+* {
+  margin: 0;
+  padding: 0;
+}
+.root {
+  display: flex;
+  height: 100vh;
+}
+.left {
+  width: 200px;
+  background-color: aqua;
+  position: relative;
+  /* 拼爹时代：如果left的层级高于right，那么right里面的Dialog只会在right区域弹出。
+     即使把Dialog的层级弄得很高也没有用，Dialog再高也不会高于父级的层级。
+     解决办法：① 除非left的层级低于right；
+              ② 把Dialog插在body内，与挂载的根节点同级
+  
+  */
+  z-index: 10;
+}
+.right {
+  flex: 1;
+  background-color: blueviolet;
+  position: relative;
+  z-index: 5;
+}
+```
+
+```js
+// PortalDialog.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+export default function PortalDialog(props) {
+  return ReactDOM.createPortal(
+    <div
+      style={{
+        width: '100%',
+        height: '100vh',
+        background: 'rgba(0,0,0,0.7)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        // 一定要写比父组件高的层级
+        zIndex: 9999,
+        color: '#fff',
+      }}
+    >
+      PortalDialog
+      {props.children}
+      <button onClick={props.close}>close</button>
+    </div>,
+    document.body
+  );
+}
+```
+
+### 2. 优化首屏加载时间：
+
+- 懒加载： React-lazy + Suapense（React16.6 提供）
+
+  - React.lazy 动态导入组件，实现代码分割和按需加载，提高性能。将导入的组件作为 Suspense 的子组件渲染。Suspense 的 fallback 用于在动态加载组件时显示加载占位符。
+  - 优点：优化首屏加载时间
+  - 缺点：1.不支持 SSR（服务端渲染） 2.如果浏览器不支持 ECMA 方式 import 组件的方式，需要使用第三方 polyfill 库进行兼容处理
+
+```js
+import React, { Suspense, useState } from 'react';
+
+// React.lazy动态导入组件，实现代码分割和按需加载，提高性能
+const NowPlaying = React.lazy(() => import('./components/NowPlaying'));
+const ComingSoon = React.lazy(() => import('./components/ComingSoon'));
+
+export default function App() {
+  const [type, settype] = useState(1);
+  return (
+    <div>
+      App
+      <button onClick={() => settype(1)}>正在热映</button>
+      <button onClick={() => settype(2)}>即将上映</button>
+      {/* 
+        将导入的组件作为Suspense的子组件渲染
+        Suspense的fallback用于在动态加载组件时显示加载占位符
+      */}
+      <Suspense fallback={<div>正在加载loading中</div>}>
+        {type === 1 ? <NowPlaying /> : <ComingSoon />}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+![](./images/17.gif)
+
+- 按需加载： react-loadable
+  - React Loadable 是一个用于 React 应用程序中实现代码拆分的 HOC。可以让代码拆分成小块，并在渲染时按需加载，减少首屏加载时间，提高性能。
+
+```js
+import React, { useState } from 'react';
+import Loadable from 'react-loadable';
+import Loading from './components/Loading';
+
+const NowPlaying = Loadable({
+  loader: () => import('./components/NowPlaying'),
+  loading: () => <Loading />,
+});
+
+const ComingSoon = Loadable({
+  loader: () => import('./components/ComingSoon'),
+  loading: () => <Loading />,
+});
+
+export default function App() {
+  const [type, settype] = useState(1);
+
+  return (
+    <div>
+      App
+      <button onClick={() => settype(1)}>正在热映</button>
+      <button onClick={() => settype(2)}>即将上映</button>
+      {type === 1 ? <NowPlaying /> : <ComingSoon />}
+    </div>
+  );
+}
+```
+
+- 图片懒加载：图片占位符
+- 减少首页的复杂计算
+
+react-loadable 和 react-lazy 有什么区别

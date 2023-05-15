@@ -1,0 +1,27 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.root {
+  display: flex;
+  height: 100vh;
+}
+.left {
+  width: 200px;
+  background-color: aqua;
+  position: relative;
+  /* 拼爹时代：如果left的层级高于right，那么right里面的Dialog只会在right区域弹出。
+     即使把Dialog的层级弄得很高也没有用，Dialog再高也不会高于父级的层级。
+     解决办法：① 除非left的层级低于right；
+              ② 把Dialog插在body内，与挂载的根节点同级
+  
+  */
+  z-index: 10;
+}
+.right {
+  flex: 1;
+  background-color: blueviolet;
+  position: relative;
+  z-index: 5;
+}
