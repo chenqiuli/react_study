@@ -133,15 +133,58 @@ export default MyApp;
 
 ![](./images/1.PNG)
 
-### 5. ref
+### 5. React.createRef
 
-### ref 可以获取 dom 节点或者整个组件的实例
+### 可以获取 dom 节点或者整个类组件的实例
 
 ```js
+// 访问dom节点的值
 myref = React.createRef();
 <input ref={this.myref} id="input2" />;
 // 访问 this.myref.current.value
 console.log(this.myref.current.value);
+```
+
+```js
+// 获取子组件的实例，通过实例调用子组件上的方法
+import React, { Component } from 'react';
+
+class App extends Component {
+  myRef = React.createRef();
+
+  render() {
+    return (
+      <div>
+        <button
+          onClick={() => {
+            const childRef = this.myRef.current;
+            childRef.test();
+            console.log(this.myRef.current); // 子组件的实例
+          }}
+        >
+          click
+        </button>
+        <MyInput ref={this.myRef} />
+      </div>
+    );
+  }
+}
+
+class MyInput extends Component {
+  test() {
+    console.log('test');
+  }
+
+  render() {
+    return (
+      <div>
+        <input defaultValue={20} />
+      </div>
+    );
+  }
+}
+
+export default App;
 ```
 
 ### 6. 事件绑定
@@ -1302,36 +1345,7 @@ const myRef = useRef();
 }}>click</button>
 ```
 
-### 2.获取子组件的实例
-
-```js
-// 父组件
-const childRef = useRef(null);
-<Child ref={childRef} type={0} />
-<button onClick={() => {
-  // console.log(childRef.current); 子组件的实例
-  childRef.current.setname("QIU");
-}}>change-child-name</button>
-
-// Child组件
-const Child = forwardRef((props, ref) => {
-  // console.log(props, ref);
-  const [name, setname] = useState("qiu");
-
-  // 把方法暴露在ref的current下
-  useImperativeHandle(
-    ref,
-    () => ({
-      name,
-      setname
-    }),
-  );
-
-  return <div>Child-{name}</div>;
-});
-```
-
-### 3.保存变量：函数组件重新渲染变量会存储上一次的值，实现类似 useState 保存变量功能
+### 2.保存变量：函数组件重新渲染变量会存储上一次的值，实现类似 useState 保存变量功能
 
 ```js
 const countRef = useRef(0);
@@ -2713,7 +2727,7 @@ export default function PortalDialog(props) {
 
 ### 2. 优化首屏加载时间：
 
-- 懒加载： React-lazy + Suapense（React16.6 提供）
+- 懒加载一： React-lazy + Suapense（React16.6 提供）
 
   - React.lazy 动态导入组件，实现代码分割和按需加载，提高性能。将导入的组件作为 Suspense 的子组件渲染。Suspense 的 fallback 用于在动态加载组件时显示加载占位符。
   - 优点：优化首屏加载时间
@@ -2745,9 +2759,7 @@ export default function App() {
 }
 ```
 
-![](./images/17.gif)
-
-- 按需加载： react-loadable
+- 懒加载二： react-loadable
   - React Loadable 是一个用于 React 应用程序中实现代码拆分的 HOC。可以让代码拆分成小块，并在渲染时按需加载，减少首屏加载时间，提高性能。
 
 ```js
@@ -2779,7 +2791,186 @@ export default function App() {
 }
 ```
 
-- 图片懒加载：图片占位符
+![](./images/17.gif)
+
+- SSR 服务端渲染：在前端写好 html 和 css，给后端，在后端设定一个路由返回首页信息，后端需要用到模板引擎，比如 nodejs 就是用 jade
+
+- 图片优化：图片压缩（精灵图）、懒加载图片（只加载视窗内的图片，react-lazyload）、图片缓存（设置合理的缓存策略，把经常使用的图片被浏览器缓存，下次访问直接从浏览器读取）、CDN 加速
 - 减少首页的复杂计算
 
-react-loadable 和 react-lazy 有什么区别
+### 3.forwardRef
+
+- 获取子组件的实例。如果需要获取子组件的方法，使用 useImperativeHandle 把方法挂载在 ref 下
+
+```js
+import React, { useState, useImperativeHandle } from 'react';
+
+export default function Parent() {
+  const myRef = React.createRef();
+
+  return (
+    <div>
+      Parent
+      <button
+        onClick={() => {
+          console.log(myRef.current);
+          const myRefInstance = myRef.current; // 父组件通过 ref 来引用子组件的实例
+          console.log(myRefInstance);
+          myRefInstance.test();
+          myRefInstance.setvalue('');
+        }}
+      >
+        click
+      </button>
+      <Child ref={myRef} />
+    </div>
+  );
+}
+
+// 函数组件本身没有实例，因此无法直接使用 ref，需要使用 forwardRef 向子组件传递 ref
+const Child = React.forwardRef((porps, ref) => {
+  const [value, setvalue] = useState('111');
+
+  const test = () => {
+    console.log('test');
+  };
+
+  // 把方法绑定在ref上
+  useImperativeHandle(ref, () => ({
+    test,
+    setvalue,
+  }));
+
+  return (
+    <div>
+      Child
+      <input ref={ref} value={value} onChange={() => {}} />
+    </div>
+  );
+});
+```
+
+### 4.性能优化
+
+- 类组件：PureComponent 和 shouldComponentUpdate
+
+```js
+import React, { Component, useState, PureComponent } from 'react';
+
+export default function App() {
+  const [name, setname] = useState('xiaoming');
+  const [age] = useState(19);
+  const [obj, setobj] = useState({
+    name: 'xiaolan',
+    age: 18,
+  });
+
+  return (
+    <div>
+      {name}
+      <button
+        onClick={() => {
+          setname(Math.random(1));
+        }}
+      >
+        改变name
+      </button>
+      {/* name和age有一个变了，Child才会更新；如果两个都没变，Child组件直接复用上次的 */}
+      <Child1 name={name} age={age} />
+      <button
+        onClick={() => {
+          setobj({
+            name: 'yellow',
+            age: 20,
+          });
+        }}
+      >
+        改变obj
+      </button>
+      <Child2 obj={obj} />
+    </div>
+  );
+}
+
+// 类组件：PureComponent浅比较（this.props是基本类型的）
+class Child1 extends PureComponent {
+  componentDidUpdate(prevProps, prevState) {
+    console.log('Child1', 111);
+  }
+  render() {
+    return <div>Child2</div>;
+  }
+}
+
+// 类组件：深比较（this.props是引用类型的）
+class Child2 extends Component {
+  shouldComponentUpdate = (nextProps, nextState) => {
+    // console.log(this.props, nextProps);//this.props上一次的props；nextProps下一次的props
+    if (JSON.stringify(this.props) !== JSON.stringify(nextProps)) {
+      return true;
+    }
+    return false;
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    console.log('update');
+  }
+
+  render() {
+    return <div>Child2</div>;
+  }
+}
+```
+
+- 函数组件：React.memo 和 React.memo + lodash/isEqual
+
+```js
+import React, { useState } from 'react';
+import deepEqual from 'lodash/isEqual';
+
+export default function App() {
+  const [name, setname] = useState('xiaoming');
+  const [age] = useState(19);
+  const [obj, setobj] = useState({
+    name: 'xiaolan',
+    age: 18,
+  });
+
+  return (
+    <div>
+      {name}
+      <button
+        onClick={() => {
+          setname(Math.random(1));
+        }}
+      >
+        改变name
+      </button>
+      <Child name={name} age={age} />
+
+      <button
+        onClick={() => {
+          setobj({
+            name: 'yellow',
+            age: 20,
+          });
+        }}
+      >
+        改变obj
+      </button>
+      <Child2 obj={obj} />
+    </div>
+  );
+}
+// 函数组件：memo浅比较（props是基本属性）
+const Child = React.memo(() => {
+  console.log('child1', 1111);
+  return <div>Child1</div>;
+});
+
+// 函数组件：isEqual 函数进行深比较判断props属性是否相等
+const Child2 = React.memo(() => {
+  console.log('Child2', 2222);
+  return <div>Child2</div>;
+}, deepEqual);
+```
