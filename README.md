@@ -1798,7 +1798,15 @@ const store = createStore(reducer, applyMiddleware(ReduxThunk, ReduxPromise));
 export default store;
 ```
 
-### 5.reducer 处理异步请求：应用 applyMiddleware 应用中间件
+### 5.reducer 处理异步请求
+
+- redux-thunk：redux-thunk 允许 Action Creator 返回一个 thunk 函数而不是普通的 Action 对象。thunk 函数有两个参数，dispatch 和 getState，可以在内部执行异步代码，也可以访问 store 中的状态。
+- 工作原理：在 Redux 中，把 Redux Thunk 中间件应用到 Redux Store 中，当在页面中 dispatch 一个 Action，Redux Thunk 中间件会对 Action 进行拦截并判断其 Action 类型，如果 Action 类型是函数，Redux Thunk 中间件会执行该函数，在函数中，返回一个新函数，新函数有 dispatch 和 getState 两个形参，可以在新函数内执行异步请求，异步请求完成后，再手动派发新的一个 Action 来更新 Redux Store 中的状态。
+
+```js
+// 页面中dispatch一个Action
+store.dispatch(getCinemaList(store.getState().cityReducer.cityId));
+```
 
 ```js
 import axios from 'axios';
@@ -1806,7 +1814,6 @@ import axios from 'axios';
 /**
  * Action Creator内如果是同步返回一个普通js对象，{type:"xx",payload:xx}
  * 如果是异步返回一个函数，需要redux-thunk中间件这个外挂支持：
- * redux-thunk允许Action Creator返回一个thunk函数而不是普通的Action对象。thunk函数有两个参数，dispatch和getState，可以在内部执行异步代码，也可以访问store中的状态
  */
 function getCinemaList(cityId) {
   return (dispatch) => {
@@ -1827,10 +1834,23 @@ function getCinemaList(cityId) {
   };
 }
 
+export default getCinemaList;
+```
+
+- redux-promise：允许 Action Creator 返回一个 Promise 对象，把 Promise 的结果作为 payload 发送给 Reducer
+- 工作原理：在 Redux 中，把 Redux Promise 中间件应用到 Redux Store 中，当在页面中 dispatch 一个 Action，Redux Promise 中间件会对 Action 进行拦截并判断其 Action 类型，如果 Action 的 payload 是一个 Promise 对象，Redux Promise 中间件会等待 Promise 对象解析，在 Action 中返回一个 Promise 对象去执行异步请求，请求完成后 Redux Promise 中间件会自动派发新的 Action 把 Promise 的结果作为 payload，通知 Redux Store。
+
+```js
+// 页面中dispatch一个Action
+store.dispatch(getCinemaList(store.getState().cityReducer.cityId));
+```
+
+```js
+import axios from 'axios';
+
 /**
  * redux-promise中间件风格：
  * Promise三种状态：fulfilled，pending，reject
- * redux-promise允许Action Creator返回一个Promise对象，把Promise的结果作为payload发送给Reducer
  */
 function getCinemaList(cityId) {
   return axios({
@@ -2045,13 +2065,13 @@ root.render(
 
 ## 十二、redux-saga
 
-#### 1. `redux-saga`是一个管理 Redux 应用中异步操作的中间件， 基于 ES6 的 Generator 函数和 Effect 对象来实现非阻塞异步性代码。
+- `redux-saga`是一个管理 Redux 应用中异步操作的中间件， 基于 ES6 的 Generator 函数和 Effect 对象来实现非阻塞异步性代码。
 
-#### 2. 工作原理：当一个 Redux Action 被触发时，sagaMiddleware 会拦截并监听该 Action，并执行与该 Action 相关的 saga，saga 通过 call 调用异步函数，再通过 put 发出新的 Action，通知 Redux Store 更新状态。
+- 工作原理：当一个页面或组件中的 action 被 dispatch 时，Redux Saga 会拦截并监听该 Action，并执行与该 Action 相关的 Saga，Saga 通过 yield 关键字和特定的 effect 函数来发起异步请求，并暂停执行，等待该请求响应成功，异步执行完成，Saga 继续执行，通过 put 发出新的 Action，通知 Redux Store 更新状态。
 
-#### 3. `generator`函数在执行时可以暂停，后面又可以恢复执行，也称协程函数。使用：\*test() 定义，函数内部使用 yield 表达式来暂停执行函数，通过 next()方法继续执行，同时可以将参数传递给 yield 表达式。
+- `generator`函数在执行时可以暂停，后面又可以恢复执行，也称协程函数。使用：\*test() 定义，函数内部使用 yield 表达式来暂停执行函数，通过 next()方法继续执行，同时可以将参数传递给 yield 表达式。
 
-#### 3.react 结合 redux-saga 发起单个异步请求：
+#### 1、react 结合 redux-saga 发起单个异步请求：
 
 ![](./images/16.jpg)
 
@@ -2062,6 +2082,7 @@ root.render(
     const list = store.getState().list;
     if (!list.length) {
       // dispatch如果是异步的，一定要让自己的saga去监管，不能让reducer监管
+      // 1. 在页面中dispatch一个异步action
       store.dispatch({
         type: 'get-list',
       });
@@ -2085,7 +2106,7 @@ const sagaMiddleware = createSagaMiddleWare();
 
 const store = createStore(reducer, applyMiddleware(sagaMiddleware));
 
-sagaMiddleware.run(watchSage); // 监听saga任务
+sagaMiddleware.run(watchSage); // 2. 监听saga任务，执行与该action相关的Saga
 
 export default store;
 ```
@@ -2095,23 +2116,23 @@ export default store;
 import { takeEvery, put, fork } from 'redux-saga/effects';
 
 function* watchSaga() {
-  yield takeEvery('get-list1', getList1);
+  yield takeEvery('get-list', getList);
   // yield takeEvery('get-list2', getList2); // 如果是监听多个的话
 }
 
 // 异步处理请求
-function* getList1() {
-  // 阻塞地 call函数调用异步请求
-  let res = yield call(getListAction1);
-  // 非阻塞地 put函数发出新的action
+function* getList() {
+  // 阻塞地 3. 通过yield关键字和call函数调用异步请求，等待结果响应
+  let res = yield call(getListAction);
+  // 非阻塞地 4. Saga继续执行，通过put函数发出新的action，通知store更新状态
   yield put({
-    type: 'change-list1',
+    type: 'change-list',
     payload: res,
   });
 }
 
-// 调请求
-function getListAction1() {
+// 真正调请求
+function getListAction() {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve(['111', '222', '333']);
@@ -2800,7 +2821,7 @@ export default function App() {
 
 ### 3.forwardRef
 
-- 获取子组件的实例。如果需要获取子组件的方法，使用 useImperativeHandle 把方法挂载在 ref 下
+- 函数组件用来获取子组件的实例。如果需要获取子组件的方法，使用 useImperativeHandle 把方法挂载在 ref 下
 
 ```js
 import React, { useState, useImperativeHandle } from 'react';
@@ -2835,7 +2856,7 @@ const Child = React.forwardRef((porps, ref) => {
     console.log('test');
   };
 
-  // 把方法绑定在ref上
+  // 把方法绑定在ref上，让父组件调用
   useImperativeHandle(ref, () => ({
     test,
     setvalue,
@@ -2983,139 +3004,4 @@ const Child2 = React.memo(() => {
 
 - 使用虚拟化技术：对长列表或大型数据集，先渲染可见区域的内容，减少 DOM 的数量
 
-## 十八、react 结合 GraphQL，调用请求
-
-- query 不带参数
-
-```js
-// 后端代码写在nodejs学习笔记中
-import React, { Component } from 'react';
-import { ApolloProvider, Query } from 'react-apollo';
-import ApolloClient from 'apollo-boost';
-import gql from 'graphql-tag';
-
-const client = new ApolloClient({
-  // 配置反向代理解决跨域
-  uri: '/graphqldb',
-});
-
-class App extends Component {
-  render() {
-    return (
-      // 生产者-消费者模式传递client
-      <ApolloProvider client={client}>
-        <div>
-          <GraphqlQuery></GraphqlQuery>
-        </div>
-      </ApolloProvider>
-    );
-  }
-}
-
-class GraphqlQuery extends Component {
-  query = gql`
-    query {
-      getFilmList {
-        id
-        filmName
-        price
-      }
-    }
-  `;
-
-  render() {
-    return (
-      <Query query={this.query}>
-        {({ loading, data }) => {
-          console.log(data);
-          return loading ? (
-            <div>正在loading中</div>
-          ) : (
-            data.getFilmList.map((item) => {
-              return (
-                <div key={item.id} style={{ display: 'flex' }}>
-                  <div>电影名：{item.filmName}</div>
-                  <div style={{ margin: '4px' }}></div>
-                  <div>价格：{item.price}</div>
-                </div>
-              );
-            })
-          );
-        }}
-      </Query>
-    );
-  }
-}
-
-export default App;
-```
-
-- query 带参数
-
-```js
-// 后端代码写在nodejs学习笔记中
-import React, { Component } from 'react';
-import { ApolloProvider, Query } from 'react-apollo';
-import ApolloClient from 'apollo-boost';
-import gql from 'graphql-tag';
-
-const client = new ApolloClient({
-  // 配置反向代理解决跨域
-  uri: '/graphqldb',
-});
-
-class App extends Component {
-  render() {
-    return (
-      // 生产者-消费者模式传递client
-      <ApolloProvider client={client}>
-        <div>
-          <GraphqlQuery></GraphqlQuery>
-        </div>
-      </ApolloProvider>
-    );
-  }
-}
-
-class GraphqlQuery extends Component {
-  query = gql`
-    query getOneFilmList($id: String!) {
-      getOneFilmList(id: $id) {
-        id
-        filmName
-        price
-      }
-    }
-  `;
-
-  render() {
-    return (
-      <Query
-        query={this.query}
-        variables={{
-          id: '6465fa78d889283dcc882bbd',
-        }}
-      >
-        {({ loading, data }) => {
-          console.log(data);
-          return loading ? (
-            <div>正在loading中</div>
-          ) : (
-            data.getOneFilmList.map((item) => {
-              return (
-                <div key={item.id} style={{ display: 'flex' }}>
-                  <div>电影名：{item.filmName}</div>
-                  <div style={{ margin: '4px' }}></div>
-                  <div>价格：{item.price}</div>
-                </div>
-              );
-            })
-          );
-        }}
-      </Query>
-    );
-  }
-}
-
-export default App;
-```
+## 十八、react 访问 GraphQL 接口，后端代码在 nodejs/32-GraphQL，前端代码在 14-graphql

@@ -9,7 +9,8 @@ import { createRoot } from "react-dom/client";
 // import App from "./13-react补充/portal/App";
 // import App from "./13-react补充/02-懒加载_优化首屏加载速度/App-loadable";
 // import App from "./13-react补充/04-性能优化/App_函数组件";
-import App from "./14-graphql/02-App_QuerySome";
+import App from "./14-graphql/MyAPP_Todolist";
+
 
 const container = document.getElementById("root");
 const root = createRoot(container);
