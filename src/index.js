@@ -25,7 +25,6 @@ import App from "./07-react-redux/MyApp";
 import { Provider } from 'react-redux';
 import { store, persistor } from './07-react-redux/redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
-// ReactDOM.render(<App />, document.getElementById("root"));
 root.render(
   // Provider 把store通过context上下文传递给App组件，是所有组件都能拿到store的值
   <Provider store={store}>

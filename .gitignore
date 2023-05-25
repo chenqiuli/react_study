@@ -21,3 +21,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+/src/15-结合dva开发/myapp_dva/node_modules
+/src/15-结合dva开发/myapp_dva/dist
+/src/15-结合dva开发/myapp_dva/.DS_Store
+/src/15-结合dva开发/myapp_dva/npm-debug.log*
