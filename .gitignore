@@ -27,3 +27,9 @@ yarn-error.log*
 /src/15-结合dva开发/myapp_dva/dist
 /src/15-结合dva开发/myapp_dva/.DS_Store
 /src/15-结合dva开发/myapp_dva/npm-debug.log*
+
+
+/src/16-拥抱Router@6/myapp-router6/node_modules
+/src/16-拥抱Router@6/myapp-router6/dist
+/src/16-拥抱Router@6/myapp-router6/.DS_Store
+/src/16-拥抱Router@6/myapp-router6/npm-debug.log*
