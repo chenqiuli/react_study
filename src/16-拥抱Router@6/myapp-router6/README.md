@@ -26,7 +26,7 @@
 
 7. 钩子 useRoutes 代替 react-router-config
 
-8. https://reactrouter.com/docs/en/v6/upgrading/v5
+8. https://reactrouter.com/en/6.11.2/upgrading/v5
 
 #### 三. 用法详解
 
@@ -34,17 +34,11 @@
 
 ```jsx
 <Routes>
-  {/*<Route path="/" element={<Film/>}/>*/}
-  <Route index element={<Film />} />
   <Route path="/film" element={<Film />} />
   <Route path="/cinema" element={<Cinema />} />
   <Route path="/center" element={<Center />} />
 </Routes>
 ```
-
-> index 用于嵌套路由，仅匹配父路径时，设置渲染的组件。
->
-> 解决当嵌套路由有多个子路由但本身无法确认默认渲染哪个子路由的时候，可以增加 index 属性来指定默认路由。index 路由和其他路由不同的地方是它没有 path 属性，他和父路由共享同一个路径。
 
 ##### 2. 路由重定向
 
@@ -82,6 +76,10 @@ function Redirect({ to }) {
 ```
 
 ##### 3. 嵌套路由
+
+> index 用于嵌套路由，仅匹配父路径时，设置渲染的组件。
+>
+> 解决当嵌套路由有多个子路由但本身无法确认默认渲染哪个子路由的时候，可以增加 index 属性来指定默认路由。index 路由和其他路由不同的地方是它没有 path 属性，他和父路由共享同一个路径。
 
 ```jsx
 <Route path="/film" element={<Film/>}>
@@ -129,7 +127,7 @@ const [searchParams, setSearchParams] = useSearchParams();
 searchParams.get('id');
 // 判断参数是否存在
 searchParams.has('id');
-// 同时页面内也可以用set方法来改变路由
+// 同时页面内也可以用set方法来改变路由，猜你喜欢
 setSearchParams({ id: 2 });
 ```
 
