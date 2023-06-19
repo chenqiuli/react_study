@@ -67,7 +67,7 @@ const FilmItem = (props) => {
           <div className='filmItem' onClick={() => {
             value.changeInfo(synopsis);
           }} >
-            <img src={poster} />
+            <img src={poster} alt={name} />
             <div>
               <p>{name}</p>
               <p>主演：{actors.map(item => item.name).join(" ")}</p>
