@@ -10,7 +10,8 @@ import { createRoot } from "react-dom/client";
 // import App from "./13-react补充/02-懒加载_优化首屏加载速度/App-loadable";
 // import App from "./13-react补充/04-性能优化/App_函数组件";
 // import App from "./14-graphql/MyAPP_Todolist";
-import App from "./11-单元测试/App";
+// import App from "./11-单元测试/App";
+import App from "./04-hooks/06-useLayoutEffect";
 
 
 const container = document.getElementById("root");

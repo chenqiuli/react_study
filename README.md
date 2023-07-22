@@ -1039,7 +1039,7 @@ function FilmDetail() {
 
 ### redux 状态管理
 
-## 五、生命周期
+## 五、生命周期：每个组件内只能写一个，写多个后面的会覆盖前面的
 
 ### <1> 初始化：componentWillMount -> render -> componentDidMount
 
