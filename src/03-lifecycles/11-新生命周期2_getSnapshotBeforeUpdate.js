@@ -6,6 +6,7 @@ class MyApp extends Component {
   };
 
   componentDidUpdate (prevProps, prevState, value) {
+    // 该value是getSnapshotBeforeUpdate返回的值 
     console.log("componentDidUpdate", value);
   }
 

@@ -1059,7 +1059,7 @@ function FilmDetail() {
 
 ### c.render
 
-### d.componentDidUpdate：获取更新后的 dom 节点。缺点是：会执行多次，添加标志位进行判断。componentWillUpdate 有 2 个参数，prevProps 和 prevState，老的属性和老的状态
+### d.componentDidUpdate：获取更新后的 dom 节点。缺点是：会执行多次，添加标志位进行判断。componentDidUpdate 有 2 个参数，prevProps 和 prevState，老的属性和老的状态
 
 ### 老的状态：prevState
 
@@ -1282,17 +1282,102 @@ export default MyApp;
 
 ### 15. 新生命周期
 
-### a. getDerivedStateFromProp：从属性中获取衍生的状态，把属性转换为状态。第一次初始化，自己更新，父传子，都会触发这个生命周期。类属性，this 指向 undefined，没有 this.state
+### a. getDerivedStateFromProps：从属性中获取衍生的状态，把属性转换为状态。第一次初始化，自己更新 state，父传子改变 state，都会触发这个生命周期。类属性，this 指向 undefined，没有 this.state
 
 ### return 一个对象，return 的结果会与 state 进行合并覆盖，配合 componentDidUpdate 进行异步请求
 
-### nextProps-最新的属性 nextState-最新的状态
+### 初始化中代替 componentWillMount，父传子代替 componentWillReceiveProps
 
-### 初始化中代替 componentWillMount，父传子代替 componentWillReceivveProps
+```jsx
+import React, { Component } from 'react';
 
-### b.getSnapshotBeforeUpdate：在更新之前记录下快照，返回一个值
+class MyApp extends Component {
+  state = {
+    myname: 'qiu',
+  };
+
+  // 自己更新，父组件更新，初始化，都会触发这个生命周期执行
+  // 从属性中获得衍生的状态
+  // return一个对象，return的结果会与state进行合并覆盖，配合componentDidUpdate进行异步请求
+  // nextProps-最新的属性  nextState-最新的状态
+  // static：类属性，this指向undefined，没有this.state
+  static getDerivedStateFromProps(nextProps, nextState) {
+    console.log('getDerivedStateFromProps', nextState);
+    return {
+      myname:
+        nextState.myname.substring(0, 1).toUpperCase() +
+        nextState.myname.substring(1),
+    };
+  }
+
+  render() {
+    return (
+      <div>
+        <button
+          onClick={() => {
+            this.setState({
+              myname: 'kkk',
+            });
+          }}
+        >
+          click
+        </button>
+        {this.state.myname}
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
+
+### b.getSnapshotBeforeUpdate：在更新之前记录下快照，返回一个值。经常用于记录上次滚动的位置
 
 ### 执行顺序：render -> getSnapshotBeforeUpdate -> componentDidUpdate
+
+```jsx
+import React, { Component } from 'react';
+
+class MyApp extends Component {
+  state = {
+    myname: 'qiu',
+  };
+
+  componentDidUpdate(prevProps, prevState, value) {
+    // 该value是getSnapshotBeforeUpdate返回的值
+    console.log('componentDidUpdate', value);
+  }
+
+  // 在更新之前记录下快照，返回一个值，
+  // render -> getSnapshotBeforeUpdate -> componentDidUpdate
+  getSnapshotBeforeUpdate() {
+    console.log('getSnapshotBeforeUpdate');
+    return {
+      num: 100,
+    };
+  }
+
+  render() {
+    console.log('render');
+    return (
+      <div>
+        <button
+          onClick={() => {
+            this.setState({
+              myname: 'QIU',
+            });
+          }}
+        >
+          click
+        </button>
+        MyApp-{this.state.myname}
+      </div>
+    );
+  }
+}
+
+export default MyApp;
+```
 
 ## 六、Hooks
 
@@ -1324,7 +1409,7 @@ const [list, setlist] = useState([]);
 
 ### 每次 useState 更新，函数都会重新创建一次，所以每次定义的函数都会重新定义一遍，很消耗性能。useCallback 是让跟依赖项不相关的 useState 改变时，返回的函数是缓存中的函数，如果依赖项改变，useCallback 是需要重新创建的。
 
-### d. useMemo：记忆函数，计算属性，性能优化
+### d. useMemo：记忆函数，相当于 vue 的计算属性，性能优化
 
 ### useMemo 相当于 vue 的计算属性，返回一个结果，返回的结果可以是任意类型。useMemo 也是记忆组件，缓存数据的作用，当依赖项改变时，重新创建新的函数计算；若依赖项没改变，从缓存中读取数据。useMemo 这段函数比 useEffect 还先执行，所以 useMemo 内取的 state 值一开始都是初始化的值
 
@@ -1363,18 +1448,23 @@ const countRef = useRef(0);
 
 ### f. useContext：跨函数组件通信钩子函数
 
-### 简化了 class 类组件的写法，class 类组件消费者要在回调函数里面才能拿到共享 value，使用 useContext 可以直接拿到共享 value
+### 简化了 class 类组件的写法，class 子组件消费者要在回调函数里面才能拿到共享 value，使用 useContext 可以直接拿到共享 value
 
-```md
 - 1.创建共享中心：const GlobalContext = React.createContext();
 - 2.把父组件当生产者，需要传的值放在 value 属性里
-- <GlobalContext.Provider value={{
-     detailInfo,
-     setdetailInfo
-   }}>
-  </GlobalContext.Provider>
-- 3.把子组件当消费者：const value = useContext(GlobalContext);
+
+```js
+<GlobalContext.Provider
+  value={{
+    detailInfo,
+    setdetailInfo,
+  }}
+>
+  <Child />
+</GlobalContext.Provider>
 ```
+
+- 3.把子组件当消费者：const value = useContext(GlobalContext);
 
 ### g. useReducer：状态钩子函数
 
@@ -1637,15 +1727,24 @@ export default withRouter(Mine);
 
 ### 解决跨域的方法有：
 
-### 1. jsonp：需要后端更改接口
+### 1. jsonp：利用 script 的 scr 属性没有跨域限制。前端动态创建 script 标签，src 指向后端接口路径，在路径后面添加 callback 字段，提前定义好 callback 字段的函数处理结果，插入到 body。后端接收到前端的请求，解析 callback 参数，然后给前端返回一个函数，函数名使用 callback 名，函数返回的内容为 json 格式。前端会在提前定义好的函数内接收到后端返回的数据。优点是兼容性好；缺点是只能进行 get 请求，get 请求 query 传参的大小有限
 
-补充一下。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
+```js
+const script = document.createElement('script');
+script.src = 'http://localhost:8000/list?callback=handleRes';
+document.body.appendChild(script);
+
+function handleRes(res) {
+  // 获取后端传递在callback的结果
+  console.log(res);
+}
+```
 
 ### 2. cors：后端在接口的返回头加上 Access-Control-Allow-Origin: \*
 
 ![](./images/4.PNG)
 
-### 3. 反向代理：在 react 项目开发中，当请求后端接口时，做一个反向代理，先向自己的本地服务器 localhost 请求，localhost 这台服务器再向后端这台真正的服务器请求数据拿回来给客户端用，所以就不存在跨域了。
+### 3. nginx 反向代理：在 react 项目开发中，当请求后端接口时，做一个反向代理，先向自己的本地服务器 localhost 请求，localhost 这台服务器再向后端这台真正的服务器请求数据拿回来给客户端用，所以就不存在跨域了。
 
 ### react 中反向代理是利用 node 的中间件：[http-proxy-middleware](https://create-react-app.dev/docs/proxying-api-requests-in-development)，src 下新建 setupProxy.js，然后重启服务：
 
@@ -2750,7 +2849,7 @@ export default function PortalDialog(props) {
 
 ### 2. 优化首屏加载时间：
 
-- 懒加载一： React-lazy + Suapense（React16.6 提供）
+- 懒加载一： React.lazy + Suspense（React16.6 提供）
 
   - React.lazy 动态导入组件，实现代码分割和按需加载，提高性能。将导入的组件作为 Suspense 的子组件渲染。Suspense 的 fallback 用于在动态加载组件时显示加载占位符。
   - 优点：优化首屏加载时间
@@ -2819,7 +2918,7 @@ export default function App() {
 - SSR 服务端渲染：在前端写好 html 和 css，给后端，在后端设定一个路由返回首页信息，后端需要用到模板引擎，比如 nodejs 就是用 jade
 
 - 图片优化：图片压缩（精灵图）、懒加载图片（只加载视窗内的图片，react-lazyload）、图片缓存（设置合理的缓存策略，把经常使用的图片被浏览器缓存，下次访问直接从浏览器读取）、CDN 加速
-- 减少首页的复杂计算
+- 减少首页的复杂计算：使用 useMemo 缓存计算结果，使用 useCallback 缓存函数
 
 ### 3.forwardRef
 
@@ -2851,14 +2950,14 @@ export default function Parent() {
 }
 
 // 函数组件本身没有实例，因此无法直接使用 ref，需要使用 forwardRef 向子组件传递 ref
-const Child = React.forwardRef((porps, ref) => {
+const Child = React.forwardRef((props, ref) => {
   const [value, setvalue] = useState('111');
 
   const test = () => {
     console.log('test');
   };
 
-  // 把方法绑定在ref上，让父组件调用
+  // 把方法和state值绑定在ref上，让父组件调用
   useImperativeHandle(ref, () => ({
     test,
     setvalue,
@@ -2867,7 +2966,11 @@ const Child = React.forwardRef((porps, ref) => {
   return (
     <div>
       Child
-      <input ref={ref} value={value} onChange={() => {}} />
+      <input
+        ref={ref}
+        value={value}
+        onChange={(evt) => setvalue(evt.target.value)}
+      />
     </div>
   );
 });
@@ -2988,12 +3091,22 @@ export default function App() {
 // 函数组件：memo浅比较（props是基本属性）
 const Child = React.memo(() => {
   console.log('child1', 1111);
+
+  useEffect(() => {
+    console.log('useEffect');
+  }, []);
+
   return <div>Child1</div>;
 });
 
 // 函数组件：isEqual 函数进行深比较判断props属性是否相等
 const Child2 = React.memo(() => {
   console.log('Child2', 2222);
+
+  useEffect(() => {
+    console.log('useEffect');
+  }, []);
+
   return <div>Child2</div>;
 }, deepEqual);
 ```
