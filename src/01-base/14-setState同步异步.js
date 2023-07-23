@@ -6,12 +6,13 @@ class MyApp extends Component {
   };
 
   /**
-   * 每次调用setState都会引发虚拟dom的对比
-   * 1.setState处在同步的逻辑中，是异步更新状态，异步更新真实dom
+   * 每次调用setState都会引发虚拟dom的对比：
+   * 1.setState处在合成事件和钩子函数的逻辑中，是异步更新状态，异步更新真实dom
    * setState会合并更新[batch update]状态，把几次的setState合并成一次以最后一次为主，访问到的状态是老状态
    * setState接受第二个参数，第二个参数是回调函数，状态和dom更新完后就会被触发
-   * 等同步的执行完，再执行异步的
-   * 2.setState处在异步的逻辑中，是同步更新状态，同步更新真实dom，访问到的状态是更新后的状态
+   * 执行顺序：等同步的执行完，再执行异步的
+   * 2.setState处在原生事件和异步的逻辑中，是同步更新状态，同步更新真实dom，setState后可以同步访问到更新后的状态
+   * 执行顺序：同步从头到尾按顺序执行
    */
   handleClick1 = () => {
     this.setState({

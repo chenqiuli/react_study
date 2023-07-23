@@ -742,7 +742,7 @@ class MyApp extends Component {
 export default MyApp;
 ```
 
-### <2> 兄弟组件通信/中间人模式：
+### <2> 兄弟组件通信/中间人模式/状态提升：
 
 ### 通过父组件中间人模式通信，兄弟 A 组件回调给父组件，父组件存到 state，再传递给兄弟 B 组件，由此实现兄弟组件通信。兄弟组件通信不适用于叔侄通信，会显得代码很累赘。
 
@@ -823,7 +823,41 @@ function FilmDetail(props) {
 }
 ```
 
-### <3> 跨组件通信
+### <3> ref 方法：父组件定义一个 refs 引用子组件，然后就可以调用子组件的 state 和方法了
+
+```jsx
+import React, { Component } from 'react';
+
+export default class App extends Component {
+  childRef = React.createRef();
+
+  handleClick = () => {
+    const childInstance = this.childRef.current;
+    childInstance.test(); // 父组件上调用子组件的方法，实现通信
+  };
+
+  render() {
+    return (
+      <div>
+        <Child ref={this.childRef} />
+        <button onClick={this.handleClick}>click</button>
+      </div>
+    );
+  }
+}
+
+class Child extends Component {
+  test() {
+    console.log('test');
+  }
+
+  render() {
+    return <div>Child</div>;
+  }
+}
+```
+
+### <4> 跨组件通信
 
 ### 通过发布订阅模式，定义一个共用的调度中心，内有发布订阅的方法，B 组件初始化就要订阅，在 A 组件一发布的时候就可以立马收到信息。
 
@@ -928,7 +962,7 @@ class FilmDetail extends Component {
 }
 ```
 
-### <4> 跨组件通信
+### <5> 跨组件通信/context 上下文
 
 ### 所有想要通信的子组件必须包裹在 GlobalContext 定义的父组件内
 
@@ -1035,9 +1069,7 @@ function FilmDetail() {
 }
 ```
 
-### <5> 跨组件通信
-
-### redux 状态管理
+### <6> 状态管理：redux、mobx、dva
 
 ## 五、生命周期：每个组件内只能写一个，写多个后面的会覆盖前面的
 
